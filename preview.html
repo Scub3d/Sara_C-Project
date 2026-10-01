@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tenna Face Assets</title>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  body { margin: 0; padding: 16px; background: #1b1b22; color: #e8e8ee; font: 15px/1.4 system-ui, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 8px; }
+  h2 { font-size: 16px; margin: 28px 0 8px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 8px; }
+  .bar code { background: #2a2a34; padding: 2px 6px; border-radius: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .card { background: #262630; border-radius: 8px; padding: 10px; }
+  .card h3 { font-size: 14px; margin: 0 0 6px; }
+  .card p { margin: 6px 0 0; color: #a8a8b8; font-size: 13px; }
+  .screen { background: var(--screen-bg); aspect-ratio: 4 / 3; border-radius: 6px; display: block; width: 100%; object-fit: contain; }
+  .frames { display: flex; gap: 4px; margin-top: 6px; }
+  .frames figure { margin: 0; flex: 1; text-align: center; font-size: 11px; color: #a8a8b8; }
+  .frames img { width: 100%; }
+  video { width: 100%; border-radius: 6px; background: #000; }
+</style>
+</head>
+<body>
+<h1>Tenna face assets</h1>
+<div class="bar">
+  <label>Screen colour <input type="color" id="bg"></label>
+  <span id="hex"></span>
+  <span>To make a colour permanent, set <code>--screen-bg</code> in <code>assets/theme.css</code>.</span>
+</div>
+
+<h2>Mouth sets (slides 1–5). Big tile = original loop; small = frames, closed → open</h2>
+<div class="grid" id="mouths"></div>
+
+<h2>Transitions (slides 6, 8)</h2>
+<div class="grid" id="transitions"></div>
+
+<h2>Channels (slides 9–12)</h2>
+<div class="grid" id="channels"></div>
+
+<script src="assets/manifest.js"></script>
+<script>
+  const M = window.FACE_MANIFEST;
+  const root = document.documentElement;
+  const bg = document.getElementById('bg'), hex = document.getElementById('hex');
+  const setBg = v => { root.style.setProperty('--screen-bg', v); hex.textContent = v; };
+  bg.value = getComputedStyle(root).getPropertyValue('--screen-bg').trim();
+  hex.textContent = bg.value;
+  bg.addEventListener('input', () => setBg(bg.value));
+
+  const loops = [];
+  for (const set of M.mouths) {
+    const dir = `assets/mouths/${set.id}/`;
+    const card = document.createElement('div');
+    card.className = 'card';
+    const extras = Object.entries(set.extras || {});
+    card.innerHTML = `<h3>${set.id} · slide ${set.slide}</h3>
+      <img class="screen" src="${dir}${set.sourceLoop[0]}" alt="">
+      <div class="frames">
+        ${set.frames.map(f => `<figure><img class="screen" src="${dir}${f}" alt=""><figcaption>${f}</figcaption></figure>`).join('')}
+        ${extras.map(([k, f]) => `<figure><img class="screen" src="${dir}${f}" alt=""><figcaption>${k}</figcaption></figure>`).join('')}
+      </div>
+      <p>${set.looks}</p>`;
+    document.getElementById('mouths').append(card);
+    loops.push({ img: card.querySelector('img'), dir, seq: set.sourceLoop });
+  }
+  let tick = 0;
+  setInterval(() => {
+    tick++;
+    for (const l of loops) l.img.src = l.dir + l.seq[tick % l.seq.length];
+  }, 1000 / M.posesPerSecond);
+
+  for (const kind of ['transitions', 'channels']) {
+    for (const v of M[kind]) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<h3>${v.file.split('/').pop()} · slide ${v.slide}</h3>
+        <video src="assets/${v.file}" controls muted playsinline preload="metadata"></video>
+        <p>${v.seconds.toFixed(0)} s · ${v.size.join('×')}${v.warning ? ' · ⚠ ' + v.warning : ''}</p>`;
+      document.getElementById(kind).append(card);
+    }
+  }
+</script>
+</body>
+</html>

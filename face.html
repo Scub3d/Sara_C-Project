@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Tenna Face</title>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--screen-bg);
+               touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  #face { position: fixed; inset: 0; }
+  #face img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; visibility: hidden; pointer-events: none; }
+  #face img.on { visibility: visible; }
+  #tv { position: fixed; inset: 0; width: 100%; height: 100%; background: #000; object-fit: contain; display: none; z-index: 1; }
+  #tv.fill { object-fit: cover; }
+  #start { position: fixed; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center;
+           gap: 12px; background: #000; color: #eee; font: 20px/1.4 -apple-system, system-ui, sans-serif; text-align: center; padding: 24px; }
+  #start button { font: inherit; font-size: 28px; padding: 18px 40px; border-radius: 14px; border: 0; background: #2a8cff; color: #fff; }
+  #start small { opacity: .65; font-size: 14px; max-width: 34em; }
+  #debug { position: fixed; left: 8px; top: 8px; z-index: 2; display: none; max-width: min(380px, calc(100vw - 16px));
+           padding: 10px 12px; background: rgba(0,0,0,.75); color: #9f9; font: 12px/1.5 ui-monospace, monospace; border-radius: 8px; }
+  #debug label { display: block; color: #ccc; margin-top: 4px; }
+  #debug input[type=range] { width: 200px; vertical-align: middle; }
+  #debug button { font: inherit; margin: 6px 6px 0 0; }
+  #debug .warn { color: #fc6; }
+  #meter { width: 200px; height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin: 4px 0; position: relative; }
+  #meter i { display: block; height: 100%; width: 0; background: #0f0; }
+</style>
+</head>
+<body>
+<div id="face"></div>
+<video id="tv" playsinline muted preload="auto"></video>
+
+<div id="start">
+  <div>Tenna face</div>
+  <button id="go">Tap to start</button>
+  <div id="dl"></div>
+  <small>Allow the microphone. Stay quiet for the first 2 seconds so it can learn the room noise.<br>
+  Wait for the videos to finish downloading before going somewhere with a weak connection.<br><br>
+  Double-tap the screen, press D on a keyboard, or press Start on a controller to open the tuning panel.</small>
+</div>
+
+<div id="debug">
+  <div>level <span id="dLevel">-</span> dB · floor <span id="dFloor">-</span> · frame <span id="dFrame">-</span></div>
+  <div id="meter"><i id="meterBar"></i></div>
+  <div>mood <b id="dMood">-</b> <span id="dMoodInfo"></span></div>
+  <div>voice <span id="dVoice">-</span></div>
+  <div>heard <span id="dHeard">-</span></div>
+  <div>controller <span id="dPad">none</span></div>
+  <div>videos <span id="dVideos">-</span></div>
+  <div id="dWarn" class="warn"></div>
+  <label>open (dB above floor): <span id="v_open"></span><br><input id="s_open" type="range" min="3" max="30" step="1"></label>
+  <label>close (dB above floor): <span id="v_close"></span><br><input id="s_close" type="range" min="1" max="25" step="1"></label>
+  <label>widest frame (dB above floor): <span id="v_wide"></span><br><input id="s_wide" type="range" min="6" max="40" step="1"></label>
+  <label>release speed: <span id="v_release"></span><br><input id="s_release" type="range" min="0.05" max="0.6" step="0.01"></label>
+  <label>min frame time (ms): <span id="v_minFrameMs"></span><br><input id="s_minFrameMs" type="range" min="0" max="200" step="10"></label>
+  <button id="recal">Re-learn noise floor</button><button id="voiceBtn">Voice on/off</button><button id="reset">Reset sliders</button>
+</div>
+
+<script src="assets/manifest.js"></script>
+<script src="face-config.js"></script>
+<script>
+(() => {
+  const C = window.FACE_CONFIG, M = window.FACE_MANIFEST;
+  const $ = id => document.getElementById(id);
+  const sets = Object.fromEntries(M.mouths.map(s => [s.id, s]));
+
+  // ---------- tunables (panel changes persist in localStorage when available) ----------
+  const cfg = { ...C.lipSync };
+  try { Object.assign(cfg, JSON.parse(localStorage.getItem('tennaFaceCfg') || '{}')); } catch (e) {}
+  const save = () => { try { localStorage.setItem('tennaFaceCfg', JSON.stringify(cfg)); } catch (e) {} };
+
+  // ---------- face images: every frame preloaded as its own <img>, swapping just toggles a class ----------
+  const faceEl = $('face');
+  const imgs = {};          // setId -> { frames: [img], extras: [img] }
+  for (const mood of C.moods) {
+    const s = sets[mood.set];
+    if (!s) { console.warn('Unknown set', mood.set); continue; }
+    if (imgs[s.id]) continue;
+    const mk = f => { const i = new Image(); i.src = `assets/mouths/${s.id}/${f}`; i.alt = ''; faceEl.append(i); return i; };
+    imgs[s.id] = { frames: s.frames.map(mk), extras: Object.values(s.extras || {}).map(mk) };
+  }
+  let shownImg = null;
+  function show(img) {
+    if (img === shownImg) return;
+    if (shownImg) shownImg.classList.remove('on');
+    img.classList.add('on');
+    shownImg = img;
+  }
+
+  // ---------- moods ----------
+  const moodById = Object.fromEntries(C.moods.map(m => [m.id, m]));
+  let baseMood = moodById[C.defaultMood] ? C.defaultMood : C.moods[0].id;  // set by controller / keyboard
+  let voiceMood = null, voiceUntil = 0;                                     // set by trigger words
+  const currentMood = () => (voiceMood && (C.voice.moodSeconds <= 0 || performance.now() < voiceUntil)) ? voiceMood : baseMood;
+  function setBaseMood(id) { baseMood = id; voiceMood = null; backToFace(); }
+  function stepMood(d) {
+    const i = C.moods.findIndex(m => m.id === currentMood());
+    setBaseMood(C.moods[(i + d + C.moods.length) % C.moods.length].id);
+  }
+
+  // ---------- audio level -> mouth frame ----------
+  let ctx, analyser, buf, track;
+  let floorDb = -60, level = -100, calibrateUntil = 0, calSamples = [];
+  let isOpen = false, frameIdx = 0, lastFrameChange = 0, quietSince = 0, extraUntil = 0, extraImg = null, nextExtra = 0;
+
+  async function startAudio() {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+    });
+    track = stream.getAudioTracks()[0];
+    const src = ctx.createMediaStreamSource(stream);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0;
+    src.connect(analyser);
+    buf = new Float32Array(analyser.fftSize);
+    await ctx.resume();
+    recalibrate();
+  }
+  function recalibrate() { calibrateUntil = performance.now() + 2000; calSamples = []; }
+
+  function readLevel(now) {
+    if (!analyser) return;
+    if (ctx.state !== 'running') ctx.resume();
+    analyser.getFloatTimeDomainData(buf);
+    let sum = 0;
+    for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+    const db = 20 * Math.log10(Math.sqrt(sum / buf.length) + 1e-8);
+    level = db > level ? db : level + (db - level) * cfg.release;   // fast attack, slower release
+    if (calibrateUntil) {
+      calSamples.push(db);
+      if (now > calibrateUntil) {
+        calSamples.sort((a, b) => a - b);
+        floorDb = calSamples[Math.floor(calSamples.length * 0.9)];  // 90th percentile of the quiet period
+        calibrateUntil = 0;
+      }
+    }
+  }
+
+  function updateMouth(now) {
+    const set = imgs[moodById[currentMood()].set];
+    const n = set.frames.length;
+    const rel = calibrateUntil ? -99 : level - floorDb;
+    if (!isOpen && rel > cfg.open) isOpen = true;
+    else if (isOpen && rel < cfg.close) isOpen = false;
+
+    let want = 0;
+    if (isOpen) {
+      if (n <= 2) want = n - 1;
+      else {
+        const t = Math.max(0, Math.min(1, (rel - cfg.close) / Math.max(1, cfg.wide - cfg.close)));
+        want = 1 + Math.round(t * (n - 2));
+      }
+    }
+    if (want !== frameIdx && now - lastFrameChange >= cfg.minFrameMs) { frameIdx = Math.min(want, n - 1); lastFrameChange = now; }
+    frameIdx = Math.min(frameIdx, n - 1);   // mood may have changed to a set with fewer frames
+
+    // occasional idle flourish (e.g. set1's tongue) while quiet
+    if (isOpen) quietSince = now;
+    if (C.idleExtras && set.extras.length && !isOpen && now - quietSince > 1500 && now > nextExtra) {
+      extraImg = set.extras[Math.floor(Math.random() * set.extras.length)];
+      extraUntil = now + 350;
+      nextExtra = now + 4000 + Math.random() * 5000;
+    }
+    if (isOpen || !set.extras.includes(extraImg)) extraUntil = 0;
+    show(now < extraUntil ? extraImg : set.frames[frameIdx]);
+  }
+
+  // ---------- TV: transitions and channels ----------
+  const tv = $('tv');
+  tv.muted = !C.tv.sound;
+  let tvMode = 'face', channelIdx = -1, tvTimer = 0;
+  function playTv(file, { loop = true, fill = false } = {}) {
+    tv.loop = loop;
+    tv.classList.toggle('fill', fill);
+    tv.src = videoUrl[file] || `assets/${file}`;
+    tv.style.display = 'block';
+    tv.play().catch(() => {});
+  }
+  // Download videos into memory (blob URLs) so playback never depends on the connection.
+  const videoUrl = {};
+  const dlEl = $('dl');
+  const toLoad = [...M.transitions, ...(C.tv.preloadChannels ? M.channels : [])];
+  let dlDone = 0, dlFailed = 0, dlBytes = 0;
+  const dlText = () => {
+    const mb = (dlBytes / 1048576).toFixed(0);
+    dlEl.textContent = dlDone + dlFailed < toLoad.length
+      ? `Downloading videos: ${dlDone}/${toLoad.length} (${mb} MB)`
+      : dlFailed ? `Videos: ${dlFailed} failed to download, they will stream instead` : `Videos ready (${mb} MB)`;
+  };
+  (async () => {
+    dlText();
+    for (const v of toLoad) {     // one at a time, transitions first
+      try {
+        const res = await fetch(`assets/${v.file}`);
+        if (!res.ok) throw new Error(res.status);
+        const reader = res.body.getReader(), parts = [];
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          parts.push(value); dlBytes += value.length; dlText();
+        }
+        videoUrl[v.file] = URL.createObjectURL(new Blob(parts, { type: 'video/quicktime' }));
+        dlDone++;
+      } catch (e) { dlFailed++; console.warn('Video download failed', v.file, e); }
+      dlText();
+    }
+  })();
+
+  function stopTv() { tv.pause(); tv.removeAttribute('src'); tv.load(); tv.style.display = 'none'; }
+  function viaStatic(then) {
+    clearTimeout(tvTimer);
+    playTv(M.transitions.find(t => t.file.includes('static')).file, { fill: true });
+    tvTimer = setTimeout(then, C.tv.transitionMs);
+  }
+  function backToFace() {
+    if (tvMode === 'face') return;
+    tvMode = 'face';
+    viaStatic(stopTv);
+  }
+  function nextChannel() {
+    channelIdx = (channelIdx + 1) % M.channels.length;
+    tvMode = 'channel';
+    viaStatic(() => playTv(M.channels[channelIdx].file));
+  }
+  function toggleBars() {
+    if (tvMode === 'bars') return backToFace();
+    tvMode = 'bars';
+    clearTimeout(tvTimer);
+    playTv(M.transitions.find(t => t.file.includes('color-bars')).file, { fill: true });
+  }
+  function staticBurst() {
+    if (tvMode !== 'face') return;
+    viaStatic(stopTv);
+  }
+
+  // ---------- voice trigger words (Safari speech recognition) ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const triggers = C.moods.flatMap(m => m.triggers.map(t => ({ mood: m.id, re: new RegExp(`\\b${esc(t.toLowerCase())}\\b`, 'g') })));
+  let rec = null, voiceOn = false, voiceStatus = SR ? 'off' : 'not supported on this browser', heard = '', fired = {}, restartDelay = 300;
+
+  function startVoice() {
+    if (!SR) return;
+    voiceOn = true;
+    if (rec) return;
+    rec = new SR();
+    rec.lang = C.voice.lang;
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.onstart = () => { voiceStatus = 'listening'; restartDelay = 300; };
+    rec.onresult = e => {
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const text = e.results[i][0].transcript.toLowerCase();
+        heard = text.slice(-60);
+        // count each trigger's matches in this result; only new ones fire (interim results repeat the same words)
+        const seen = fired[i] || (fired[i] = {});
+        let best = null;
+        for (const t of triggers) {
+          const hits = [...text.matchAll(t.re)];
+          const key = t.re.source;
+          if (hits.length > (seen[key] || 0)) {
+            seen[key] = hits.length;
+            const pos = hits[hits.length - 1].index;
+            if (!best || pos > best.pos) best = { mood: t.mood, pos };
+          }
+        }
+        if (best) { voiceMood = best.mood; voiceUntil = performance.now() + C.voice.moodSeconds * 1000; }
+      }
+    };
+    rec.onerror = e => {
+      voiceStatus = 'error: ' + e.error;
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { voiceOn = false; voiceStatus += ' (check Settings > Siri & Dictation / Safari permissions)'; }
+    };
+    rec.onend = () => {
+      rec = null; fired = {};
+      if (!voiceOn) { voiceStatus = 'off'; return; }
+      voiceStatus = 'restarting';
+      setTimeout(() => { if (voiceOn) startVoice(); }, restartDelay);
+      restartDelay = Math.min(restartDelay * 2, 5000);   // back off if it keeps ending straight away
+    };
+    try { rec.start(); } catch (e) { voiceStatus = 'error: ' + e.message; rec = null; }
+  }
+  function stopVoice() { voiceOn = false; voiceMood = null; if (rec) rec.stop(); voiceStatus = 'off'; }
+  const toggleVoice = () => (voiceOn ? stopVoice() : startVoice());
+
+  // ---------- input: keyboard and gamepad ----------
+  const dbg = $('debug');
+  const toggleDebug = () => { dbg.style.display = dbg.style.display === 'block' ? 'none' : 'block'; };
+  const actions = { prevMood: () => stepMood(-1), nextMood: () => stepMood(1), nextChannel, backToFace,
+                    colorBars: toggleBars, staticBurst, toggleVoice, debug: toggleDebug };
+
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    const mood = C.moods.find(m => m.key === k);
+    if (mood) { setBaseMood(mood.id); e.preventDefault(); return; }
+    for (const [name, c] of Object.entries(C.controls)) {
+      if (c.keys.includes(k)) { actions[name](); e.preventDefault(); return; }
+    }
+  });
+
+  let padPrev = [], padInfo = 'none', lastButton = '-';
+  function pollGamepad() {
+    const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [];
+    if (!pads.length) { padInfo = 'none'; return; }
+    const p = pads[0];
+    padInfo = `${p.id.slice(0, 40)} · last button ${lastButton}`;
+    p.buttons.forEach((b, i) => {
+      const down = b.pressed || b.value > 0.5;
+      if (down && !padPrev[i]) {
+        lastButton = i;
+        const mood = C.moods.find(m => m.button === i);
+        if (mood) setBaseMood(mood.id);
+        else for (const [name, c] of Object.entries(C.controls)) if (c.button === i) actions[name]();
+      }
+      padPrev[i] = down;
+    });
+  }
+
+  let lastTap = 0;
+  document.addEventListener('pointerdown', e => {
+    if (dbg.contains(e.target) || $('start').contains(e.target)) return;
+    const t = performance.now();
+    if (t - lastTap < 350) toggleDebug();
+    lastTap = t;
+  });
+
+  // ---------- tuning panel ----------
+  for (const key of ['open', 'close', 'wide', 'release', 'minFrameMs']) {
+    const s = $('s_' + key), v = $('v_' + key);
+    const sync = () => { s.value = cfg[key]; v.textContent = cfg[key]; };
+    sync();
+    s.addEventListener('input', () => { cfg[key] = +s.value; v.textContent = cfg[key]; save(); });
+    $('reset').addEventListener('click', () => { cfg[key] = C.lipSync[key]; sync(); save(); });
+  }
+  $('recal').addEventListener('click', recalibrate);
+  $('voiceBtn').addEventListener('click', toggleVoice);
+
+  function updateDebug(now) {
+    if (dbg.style.display !== 'block') return;
+    $('dLevel').textContent = level.toFixed(1);
+    $('dFloor').textContent = calibrateUntil ? 'learning' : floorDb.toFixed(1);
+    $('dFrame').textContent = `${frameIdx}${isOpen ? ' (open)' : ''}`;
+    $('meterBar').style.width = Math.max(0, Math.min(100, (level + 70) / 70 * 100)) + '%';
+    const vm = voiceMood && (C.voice.moodSeconds <= 0 || now < voiceUntil);
+    $('dMood').textContent = currentMood();
+    $('dMoodInfo').textContent = vm ? `(voice, ${C.voice.moodSeconds > 0 ? Math.ceil((voiceUntil - now) / 1000) + ' s left' : 'held'}; base ${baseMood})` : '(base)';
+    $('dVoice').textContent = voiceStatus;
+    $('dHeard').textContent = heard || '-';
+    $('dPad').textContent = padInfo;
+    $('dVideos').textContent = dlEl.textContent;
+    $('dWarn').textContent = track && (track.muted || track.readyState === 'ended')
+      ? 'Mic stream is muted/ended. Speech recognition may have taken the mic: turn voice off, then reload.' : '';
+  }
+
+  function loop(now) {
+    pollGamepad();
+    readLevel(now);
+    updateMouth(now);
+    updateDebug(now);
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- start (a user gesture is required for the mic, audio and video in Safari) ----------
+  show(imgs[moodById[baseMood].set].frames[0]);
+  $('go').addEventListener('click', async () => {
+    try {
+      await startAudio();
+    } catch (e) {
+      alert('Microphone failed: ' + e.message + '\nSafari only allows the mic on HTTPS (or localhost).');
+      return;
+    }
+    $('start').style.display = 'none';
+    try { if (navigator.wakeLock) await navigator.wakeLock.request('screen'); } catch (e) {}
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible') { try { await navigator.wakeLock?.request('screen'); } catch (e) {} }
+    });
+    if (C.voice.enabled) startVoice();
+    requestAnimationFrame(loop);
+  });
+})();
+</script>
+</body>
+</html>
