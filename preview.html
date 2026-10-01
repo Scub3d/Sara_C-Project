@@ -19,7 +19,10 @@
   .frames { display: flex; gap: 4px; margin-top: 6px; }
   .frames figure { margin: 0; flex: 1; text-align: center; font-size: 11px; color: #a8a8b8; }
   .frames img { width: 100%; }
-  video { width: 100%; border-radius: 6px; background: #000; }
+  video, canvas.noise { width: 100%; border-radius: 6px; background: #000; display: block; }
+  canvas.noise { aspect-ratio: 16 / 9; }
+  .ab { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .ab div { font-size: 12px; color: #a8a8b8; }
 </style>
 </head>
 <body>
@@ -33,13 +36,14 @@
 <h2>Mouth sets (slides 1–5). Big tile = original loop; small = frames, closed → open</h2>
 <div class="grid" id="mouths"></div>
 
-<h2>Transitions (slides 6, 8)</h2>
+<h2>Transitions (slides 6, 8). Static: original video vs generated live (0 MB)</h2>
 <div class="grid" id="transitions"></div>
 
-<h2>Channels (slides 9–12)</h2>
+<h2>Channels (slides 9–12). Original vs small (re-compressed)</h2>
 <div class="grid" id="channels"></div>
 
 <script src="assets/manifest.js"></script>
+<script src="assets/static-noise.js"></script>
 <script>
   const M = window.FACE_MANIFEST;
   const root = document.documentElement;
@@ -71,15 +75,26 @@
     for (const l of loops) l.img.src = l.dir + l.seq[tick % l.seq.length];
   }, 1000 / M.posesPerSecond);
 
+  const vid = f => `<video src="assets/${f}" controls muted playsinline preload="metadata"></video>`;
   for (const kind of ['transitions', 'channels']) {
     for (const v of M[kind]) {
+      const isStatic = v.file.includes('static');
       const card = document.createElement('div');
       card.className = 'card';
+      const b = v.small ? vid(v.small) : isStatic ? '<canvas class="noise"></canvas>' : '';
       card.innerHTML = `<h3>${v.file.split('/').pop()} · slide ${v.slide}</h3>
-        <video src="assets/${v.file}" controls muted playsinline preload="metadata"></video>
+        ${b ? `<div class="ab"><div>original <span class="mb" data-f="${v.file}"></span>${vid(v.file)}</div>
+               <div>${isStatic ? 'generated · 0 MB' : `small <span class="mb" data-f="${v.small}"></span>`}${b}</div></div>` : vid(v.file)}
         <p>${v.seconds.toFixed(0)} s · ${v.size.join('×')}${v.warning ? ' · ⚠ ' + v.warning : ''}</p>`;
       document.getElementById(kind).append(card);
+      if (isStatic) StaticNoise(card.querySelector('canvas')).start();
     }
+  }
+  // file sizes (needs a web server; skipped when opened from disk)
+  for (const el of document.querySelectorAll('.mb')) {
+    fetch('assets/' + el.dataset.f, { method: 'HEAD' })
+      .then(r => { const n = +r.headers.get('content-length'); if (n) el.textContent = '· ' + (n / 1048576).toFixed(1) + ' MB'; })
+      .catch(() => {});
   }
 </script>
 </body>

@@ -44,8 +44,11 @@ window.FACE_CONFIG = {
     transitionMs: 600,      // static burst between face and channels
     sound: false,           // play channel/transition audio
     // Videos are downloaded into memory while the start screen is up, so they play without a connection.
-    // Transitions (~25 MB) always are; channels add ~128 MB. If false, channels stream when played.
+    // Colour bars (11 MB) always are; channels add ~46 MB (small) or ~134 MB (original). If false, channels stream.
     preloadChannels: true,
+    // A/B test options (the tuning panel can switch them; URL ?videos=...&static=... also overrides):
+    videos: 'small',        // 'small' = re-compressed channels (~46 MB), 'original' = PowerPoint copies (~134 MB)
+    static: 'generated',    // 'generated' = drawn live (0 MB), 'video' = transitions/static.mov (15 MB)
   },
 
   // Other controls. Gamepad indices use the standard layout (12-15 = D-pad up/down/left/right).

@@ -46,10 +46,10 @@ self.FACE_MANIFEST = {
     { "file": "transitions/static.mov", "slide": 8, "seconds": 15.7, "size": [1280, 720] }
   ],
   "channels": [
-    { "file": "channels/smash64.mov", "slide": 9, "seconds": 385.4, "size": [960, 720] },
-    { "file": "channels/rickroll-deltarune.mov", "slide": 10, "seconds": 78.2, "size": [960, 720], "warning": "profanity on screen" },
-    { "file": "channels/dvd-logo.mov", "slide": 11, "seconds": 63.6, "size": [600, 480] },
-    { "file": "channels/bad-apple.mov", "slide": 12, "seconds": 219.7, "size": [1920, 1080] }
+    { "file": "channels/smash64.mov", "small": "channels/smash64.small.mp4", "slide": 9, "seconds": 385.4, "size": [960, 720] },
+    { "file": "channels/rickroll-deltarune.mov", "small": "channels/rickroll-deltarune.small.mp4", "slide": 10, "seconds": 78.2, "size": [960, 720], "warning": "profanity on screen" },
+    { "file": "channels/dvd-logo.mov", "small": "channels/dvd-logo.small.mp4", "slide": 11, "seconds": 63.6, "size": [600, 480] },
+    { "file": "channels/bad-apple.mov", "small": "channels/bad-apple.small.mp4", "slide": 12, "seconds": 219.7, "size": [1920, 1080] }
   ]
 }
 ;

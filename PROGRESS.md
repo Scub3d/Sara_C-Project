@@ -2,6 +2,20 @@
 
 Running session log maintained by Claude Code. Newest entries first.
 
+## 2026-10-01 - Smaller videos (A/B) and pptx removed from git
+
+- **Done:**
+  - Re-compressed the four channels into `assets/channels/*.small.mp4` (H.264 CRF 34, 30 fps; Bad Apple scaled to 720p): 46 MB in total vs 134 MB for the originals. CRF 34 looked nearly identical to the source in frame crops; CRF 28 only halved the size.
+  - Added `assets/static-noise.js`, CRT static drawn live on a canvas (0 MB) to replace `static.mov`. Tuned against the clip: luminance 5/50/95th percentile 12/68/145 vs 8/60/152 for the clip, cool tint, rolling band. Its grain is a little finer and less clumpy than the clip's.
+  - Originals are kept alongside for A/B testing. `face-config.js` has `tv.videos` ('small' | 'original') and `tv.static` ('generated' | 'video'). URL `?videos=...&static=...` overrides them, and the tuning panel has two buttons that reload with the other option and show the current mode. `manifest.js` channels gained a `small` field.
+  - `preview.html` shows original vs small for each channel, and the static video next to the generated static.
+  - Headless test, both modes: defaults download 55 MB, originals 152 MB. With the network cut, the static transition, channel playback, return to the face and the static burst all worked, with no errors.
+  - Git: the repo (remote `Scub3d/ChaosCosplay-s-Project`, nothing pushed yet) had one commit containing the 170 MB pptx. Took it out of that commit (amended "Initial commit", now 62b2dfe), added `.gitignore` with `*.pptx`, and expired the reflog and gc'd so the blob is gone. The pptx stays on disk. Pack size is now 159 MB.
+- **Decided:** Defaults are the small videos and the generated static. The originals are only an A/B option.
+- **Note:** The user replaced `README.md` with a 2-line title, so the usage notes written earlier are no longer in the repo.
+- **Next:** User commits the current changes and pushes. A/B on the iPad. If the small versions win, the original channel .mov files could be dropped from the repo (`smash64.mov` at 77 MB triggers GitHub's 50 MB warning).
+- **Blocked/Open:** None.
+
 ## 2026-10-01 - Face page made to work without a steady connection
 
 - **Done:** Voice trigger words are now off by default (`voice.enabled: false`); the code is kept and V / Select toggles it. `face.html` now downloads the transition and channel videos into memory (blob URLs) during the start screen, shows progress there and in the tuning panel, and plays them from memory. Added `tv.preloadChannels` (true by default, about 152 MB in total). Tested in headless Chrome: after the download, with the network cut, a channel still played and returning to the face worked, with no errors. Updated `README.md`. `manifest.js` now assigns to `self.FACE_MANIFEST` (same object in the page).

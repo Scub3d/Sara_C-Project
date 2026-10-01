@@ -15,6 +15,7 @@
   #face img.on { visibility: visible; }
   #tv { position: fixed; inset: 0; width: 100%; height: 100%; background: #000; object-fit: contain; display: none; z-index: 1; }
   #tv.fill { object-fit: cover; }
+  #noise { position: fixed; inset: 0; width: 100%; height: 100%; display: none; z-index: 1; image-rendering: auto; }
   #start { position: fixed; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center;
            gap: 12px; background: #000; color: #eee; font: 20px/1.4 -apple-system, system-ui, sans-serif; text-align: center; padding: 24px; }
   #start button { font: inherit; font-size: 28px; padding: 18px 40px; border-radius: 14px; border: 0; background: #2a8cff; color: #fff; }
@@ -32,6 +33,7 @@
 <body>
 <div id="face"></div>
 <video id="tv" playsinline muted preload="auto"></video>
+<canvas id="noise"></canvas>
 
 <div id="start">
   <div>Tenna face</div>
@@ -50,6 +52,7 @@
   <div>heard <span id="dHeard">-</span></div>
   <div>controller <span id="dPad">none</span></div>
   <div>videos <span id="dVideos">-</span></div>
+  <div>A/B <span id="dAB">-</span></div>
   <div id="dWarn" class="warn"></div>
   <label>open (dB above floor): <span id="v_open"></span><br><input id="s_open" type="range" min="3" max="30" step="1"></label>
   <label>close (dB above floor): <span id="v_close"></span><br><input id="s_close" type="range" min="1" max="25" step="1"></label>
@@ -57,9 +60,11 @@
   <label>release speed: <span id="v_release"></span><br><input id="s_release" type="range" min="0.05" max="0.6" step="0.01"></label>
   <label>min frame time (ms): <span id="v_minFrameMs"></span><br><input id="s_minFrameMs" type="range" min="0" max="200" step="10"></label>
   <button id="recal">Re-learn noise floor</button><button id="voiceBtn">Voice on/off</button><button id="reset">Reset sliders</button>
+  <br><button id="abVideos">Switch video version</button><button id="abStatic">Switch static type</button>
 </div>
 
 <script src="assets/manifest.js"></script>
+<script src="assets/static-noise.js"></script>
 <script src="face-config.js"></script>
 <script>
 (() => {
@@ -173,6 +178,14 @@
   // ---------- TV: transitions and channels ----------
   const tv = $('tv');
   tv.muted = !C.tv.sound;
+  // A/B options: face-config.js sets the defaults, URL parameters override them (?videos=original&static=video).
+  const params = new URLSearchParams(location.search);
+  const videoVersion = params.get('videos') || C.tv.videos;     // 'small' | 'original'
+  const staticType = params.get('static') || C.tv.static;       // 'generated' | 'video'
+  const channelFile = v => (videoVersion === 'small' && v.small) || v.file;
+  const staticClip = M.transitions.find(t => t.file.includes('static')).file;
+  const barsClip = M.transitions.find(t => t.file.includes('color-bars')).file;
+  const noise = StaticNoise($('noise'));
   let tvMode = 'face', channelIdx = -1, tvTimer = 0;
   function playTv(file, { loop = true, fill = false } = {}) {
     tv.loop = loop;
@@ -184,7 +197,8 @@
   // Download videos into memory (blob URLs) so playback never depends on the connection.
   const videoUrl = {};
   const dlEl = $('dl');
-  const toLoad = [...M.transitions, ...(C.tv.preloadChannels ? M.channels : [])];
+  const toLoad = [barsClip, ...(staticType === 'video' ? [staticClip] : []),
+                  ...(C.tv.preloadChannels ? M.channels.map(channelFile) : [])];
   let dlDone = 0, dlFailed = 0, dlBytes = 0;
   const dlText = () => {
     const mb = (dlBytes / 1048576).toFixed(0);
@@ -194,9 +208,9 @@
   };
   (async () => {
     dlText();
-    for (const v of toLoad) {     // one at a time, transitions first
+    for (const file of toLoad) {  // one at a time, transitions first
       try {
-        const res = await fetch(`assets/${v.file}`);
+        const res = await fetch(`assets/${file}`);
         if (!res.ok) throw new Error(res.status);
         const reader = res.body.getReader(), parts = [];
         for (;;) {
@@ -204,9 +218,9 @@
           if (done) break;
           parts.push(value); dlBytes += value.length; dlText();
         }
-        videoUrl[v.file] = URL.createObjectURL(new Blob(parts, { type: 'video/quicktime' }));
+        videoUrl[file] = URL.createObjectURL(new Blob(parts, { type: file.endsWith('.mp4') ? 'video/mp4' : 'video/quicktime' }));
         dlDone++;
-      } catch (e) { dlFailed++; console.warn('Video download failed', v.file, e); }
+      } catch (e) { dlFailed++; console.warn('Video download failed', file, e); }
       dlText();
     }
   })();
@@ -214,8 +228,9 @@
   function stopTv() { tv.pause(); tv.removeAttribute('src'); tv.load(); tv.style.display = 'none'; }
   function viaStatic(then) {
     clearTimeout(tvTimer);
-    playTv(M.transitions.find(t => t.file.includes('static')).file, { fill: true });
-    tvTimer = setTimeout(then, C.tv.transitionMs);
+    if (staticType === 'video') playTv(staticClip, { fill: true });
+    else noise.start();
+    tvTimer = setTimeout(() => { then(); noise.stop(); }, C.tv.transitionMs);
   }
   function backToFace() {
     if (tvMode === 'face') return;
@@ -225,13 +240,14 @@
   function nextChannel() {
     channelIdx = (channelIdx + 1) % M.channels.length;
     tvMode = 'channel';
-    viaStatic(() => playTv(M.channels[channelIdx].file));
+    viaStatic(() => playTv(channelFile(M.channels[channelIdx])));
   }
   function toggleBars() {
     if (tvMode === 'bars') return backToFace();
     tvMode = 'bars';
     clearTimeout(tvTimer);
-    playTv(M.transitions.find(t => t.file.includes('color-bars')).file, { fill: true });
+    noise.stop();
+    playTv(barsClip, { fill: true });
   }
   function staticBurst() {
     if (tvMode !== 'face') return;
@@ -340,6 +356,10 @@
   }
   $('recal').addEventListener('click', recalibrate);
   $('voiceBtn').addEventListener('click', toggleVoice);
+  // A/B switches reload the page with the other option (this downloads that version's videos)
+  const reloadWith = (k, v) => { params.set(k, v); location.search = params.toString(); };
+  $('abVideos').addEventListener('click', () => reloadWith('videos', videoVersion === 'small' ? 'original' : 'small'));
+  $('abStatic').addEventListener('click', () => reloadWith('static', staticType === 'video' ? 'generated' : 'video'));
 
   function updateDebug(now) {
     if (dbg.style.display !== 'block') return;
@@ -354,6 +374,7 @@
     $('dHeard').textContent = heard || '-';
     $('dPad').textContent = padInfo;
     $('dVideos').textContent = dlEl.textContent;
+    $('dAB').textContent = `videos ${videoVersion}, static ${staticType}`;
     $('dWarn').textContent = track && (track.muted || track.readyState === 'ended')
       ? 'Mic stream is muted/ended. Speech recognition may have taken the mic: turn voice off, then reload.' : '';
   }
