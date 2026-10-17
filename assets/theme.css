@@ -1,7 +1,10 @@
-/* Face screen colours. Change --screen-bg to recolour the whole face. The mouth PNGs are
-   transparent, so the background colour also shows through the open mouths.
-   Default #DBE8F5 is the brightest part of assets/transitions/static.mov, scaled up to near white
-   (the cool white of a CRT showing static). */
+/* Face screen colours.
+   --screen-bg: the Existing style's screen. Its mouth PNGs are transparent, so this colour also shows
+   through the open mouths. Default #DBE8F5 is the brightest part of assets/transitions/static.mov,
+   scaled up to near white (the cool white of a CRT showing static).
+   --commissioned-bg: the Commissioned renders are opaque full frames with the backdrop baked in, so this
+   only shows around them (page load, odd aspect ratios). #E1F5FD is the renders' top-edge colour. */
 :root {
   --screen-bg: #DBE8F5;
+  --commissioned-bg: #E1F5FD;
 }

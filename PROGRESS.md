@@ -2,6 +2,87 @@
 
 Running session log maintained by Claude Code. Newest entries first.
 
+## 2026-10-16 - Published to GitHub Pages, Commissioned faces only
+
+- **Done:**
+  - Removed the Existing style from face-config.js, manifest.js, README.html and preview.html. The "Switch faces" button hides itself when there's only one style.
+  - `assets/faces/Existing/` is now in `.gitignore` (kept on disk, not published). It's still in the earlier commits' history.
+  - Removed the joke channel videos (Smash 64, Rickroll, DVD logo, Bad Apple): `channels` is empty in manifest.js, the next-channel control is gone, `assets/channels/` is in `.gitignore`. The colour bars and static stay.
+  - Added `index.html` (redirects to face.html) and `.nojekyll` for GitHub Pages.
+  - Headless check: face.html, README.html and preview.html load with no script errors.
+- **Next:** Turn on Pages in the repo settings (main branch, root). The repo must be public unless the account has GitHub Pro.
+
+## 2026-10-13 - Session wrap-up: where things stand
+
+- **Done:** Log saved at the end of the 2026-10-12 session. Nothing changed in the code since the entry below.
+- **State:**
+  - The face runs from a Home Screen icon on the iPad.
+  - Two face styles: Commissioned (default) and Existing, swapped with F, RB/R1 or the panel.
+  - Tuning panel: large touch controls, plus full-screen and Add to Home Screen helpers.
+  - README.html is the wearer's guide. `node serve.mjs` serves the folder on the network for testing. `Tenna-Face.zip` is the packaged copy.
+- **Confirmed by the user on the iPad:**
+  - The face size and fit look right.
+  - The panel responds to taps.
+  - The bottom bar was gone when html/body were set to 100vh. After that fix was restored, along with the scroll snap-back and the bigger sliders, the user hasn't reported back yet.
+- **Next:**
+  1. On the iPad, confirm the bottom bar stays gone and the panel still responds with the latest version. If taps go off, the panel's "page scroll" should read 0/0.
+  2. Retry the trigger words in Safari or the Home Screen app, turning voice on with the panel button, and report the panel's voice/heard lines. Earlier testing may have been in Firefox.
+  3. The wearer picks Commissioned or Existing, and confirms the Commissioned frame order (closed → open) and the surprised/smug uses for the extra poses.
+  4. Commit. Everything since 2658a0c is uncommitted.
+- **Blocked/Open:**
+  - The trigger words on the iPad aren't diagnosed yet.
+  - Safari's full-screen ✕ and the iPadOS status bar, home indicator and multitasking dots can't be hidden by a web page. The Home Screen icon avoids the ✕ only.
+
+## 2026-10-12 - README updated, project zipped
+
+- **Done:**
+  - README.html: added the panel's "page scroll" readout, finger-drag sliders, troubleshooting for panel taps not responding, a note on the test server's certificate, and Home Screen app notes.
+  - Built `Tenna-Face.zip` in the repo root (212.5 MB, 65 files, all in a `Tenna-Face/` folder) and added `*.zip` to `.gitignore`. Left out `.git`, `.cert` (the test server's private key) and `TennaFaces.pptx` (170 MB; its contents are already in `assets/`).
+  - Unzipped a copy and ran it from disk: the face starts, moods and the style swap work, README tables render, no errors.
+- **Decided:** Kept the original channel .mov files in the zip, since the A/B option still uses them.
+- **Next:** Nothing is committed yet: everything since 2658a0c is uncommitted, including the Existing faces move, Commissioned faces, README.html, serve.mjs and the icon. Commit when the user asks.
+
+## 2026-10-12 - Add to Home Screen helper; home-screen mode fixes
+
+- **Done:**
+  - Added an "Add to Home Screen…" panel button. A page can't start Add to Home Screen itself (WebKit 255716), so the button leaves full screen, shows the 3 steps with a "Share button is up here ↗" pointer, and offers "Try the share sheet" (`navigator.share`). It is hidden when the face runs from the Home Screen. Added `assets/icon-180.png` (a crop of Commissioned happy/4) and an apple-mobile-web-app-title.
+  - The user added the face to the Home Screen and reported a white bar at the bottom and a dead "Tap to start". Likely cause of the dead button: for about a minute a stray `else` from my edit broke the page script, and the server serves files live. Fixed.
+  - Now, script errors show in red on the start screen, the start button shows "Starting…", and the mic gets a 15 s timeout with an explanation on failure.
+  - White bar: a known iOS home-screen-app height bug (WebKit 237961/316008). In home-screen mode an `html.standalone` class sizes html/body and the face, TV, noise and start layers with `100vh`.
+  - Headless tests pass: simulated home-screen mode with the mic denied, the full-screen and Add to Home Screen buttons, and trigger words. README.html troubleshooting has rows for both issues.
+  - Follow-up: visuals were fixed, but the panel stopped responding to taps in home-screen mode. Probable cause: `height: 100vh` on html/body made the page about a status bar taller than the window, iOS scrolled it, and taps on fixed elements landed off target. Fix: only the fixed layers get 100vh; a scroll listener snaps the page back to 0,0; the panel respects the top safe area and scrolls internally if it's too tall. Simulated home-screen touch test: page not scrollable, panel buttons work.
+  - Second follow-up: with only the layers at 100vh the panel worked but the bottom bar came back. So html/body 100vh is what removes the bar. Restored it (plus `overscroll-behavior: none`) and kept the scroll snap-back, now also on touchend and visualViewport scroll; the first time there was no snap-back. Added a "page scroll" readout to the panel (should stay 0/0). Panel sliders are now full-width, 44 px tall touch targets with 34 px thumbs; buttons are at least 44 px tall; panel width up to 460 px. Touch-drag test passes.
+- **Next:** On the iPad, fully close and reopen the Home Screen face. Check the bottom bar is gone, start works and the panel responds. If taps go off again, read the panel's "page scroll" value. If the bar remains, re-add the icon.
+- **Blocked/Open:** Not verified on a device yet.
+
+## 2026-10-12 - Face fit fix and full-screen button
+
+- **Done:**
+  - Commissioned faces now use `fit: 'contain'` instead of `cover`. With Safari's toolbars the screen is wider than 4:3, so `cover` cropped the bottom lip (user report).
+  - Added an "Enter/Exit full screen" button to the tuning panel. It uses the Fullscreen API, with a webkit fallback for older Safari, and the label follows the full-screen state.
+  - Updated README.html (start steps, panel table, troubleshooting).
+  - Headless test at 1180x740: whole mouth visible, toggle works, no errors.
+  - Trigger words: the user reported they don't work. The code passes a fake-recogniser test (haha → happy, shut up → angry, oh no → sad in Existing), so the cause is on the iPad. Asked for the panel's voice/heard lines.
+  - The user found full screen fails in Firefox on the iPad. My understanding (not verified on a device): every iPad browser runs on WebKit, and apps like Firefox don't turn on full screen for web pages, so it only works in Safari. The error text now says to use Safari or Add to Home Screen, and README.html says Safari is required.
+  - The user wanted the full-screen ✕ and the "tray items" hidden. From searching: Safari's full-screen ✕ can't be hidden by a page (Apple declined; WebKit bugs 264216 and 272392 are open). The iPadOS status bar, home indicator and multitasking dots have no web API either. The full-screen button is now hidden when the face is opened from a Home Screen icon (`navigator.standalone` / display-mode standalone), where there's no Safari ✕. README.html recommends Add to Home Screen.
+- **Next:** Check on the iPad, opening the face from its Home Screen icon, that it fills the screen and how visible the iPadOS edge items are. Get the voice status from the panel to diagnose the trigger words. Likely causes: voice is off by default, a controller button can't start recognition, Dictation is off, or the iPad won't share the mic between recognition and lip-sync.
+- **Blocked/Open:** Trigger words on the iPad (waiting on the panel readout).
+
+## 2026-10-12 - Commissioned face renders added, swappable with the existing frames; README.html and LAN test server
+
+- **Done:**
+  - The artist's renders ("USE THESE": Normal, Happy, Angry with 5 frames each, plus 2 extras) are now in `assets/faces/Commissioned/{normal,happy,angry,extras}/`, renamed `0.png` (closed) to `4.png` (most open). Extras: `o-mouth.png`, `smirk.png`. They are 2732x2048 (the 12.9" iPad Pro screen), fully opaque, with the screen backdrop baked in and identical in every frame.
+  - The old PowerPoint mouths moved (with git mv) from `assets/mouths/` to `assets/faces/Existing/setN-*/`.
+  - `face-config.js` now has `faceStyle` and `styles: { Commissioned, Existing }`, each with its own moods, defaultMood, fit (cover/contain) and background. Commissioned moods: neutral, happy, angry, plus surprised (O) and smug (smirk), which are single held poses. Existing keeps the old 5 moods.
+  - `face.html` swaps style live with F, RB/R1 (button 5) or a panel button. The mood is kept if the other style has the same id. The pick is remembered in localStorage, and `?faces=` overrides it. `manifest.js` `mouths` became `faces`, with `style`/`dir` per set. `theme.css` has `--screen-bg` (Existing) and `--commissioned-bg` (#E1F5FD).
+  - `preview.html` shows both styles.
+  - Added `README.html`, a step-by-step guide for the wearer. Its mood and control tables are built from `face-config.js`.
+  - Added `serve.mjs`: HTTPS on port 8443 (self-signed certificate in `.cert/`, gitignored; needed for the mic in Safari) and HTTP on 8080, with byte ranges for video.
+  - Tested in headless Chrome: all moods in both styles, swap and remember, lip-sync frames, the README render. No errors.
+- **Decided:** Frame order is a judgement from the art. Normal is 5,3,4,1,2. Happy is 2,3,1,5,4. Angry is base,2,3,5,4 (original Illustration57 numbers).
+- **Next:** The wearer compares the styles on the iPad (`node serve.mjs`, then https://<LAN IP>:8443/face.html) and confirms the frame order and the uses for the extra poses. Not yet tested on a real iPad.
+- **Blocked/Open:** Whether Windows Firewall lets the iPad reach the server (allow Node on private networks).
+
 ## 2026-10-01 - Smaller videos (A/B) and pptx removed from git
 
 - **Done:**

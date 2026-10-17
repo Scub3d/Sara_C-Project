@@ -1,26 +1,38 @@
 // Settings for face.html. Edit this file to rename moods, change trigger words or remap buttons.
-// The screen colour is in assets/theme.css (--screen-bg).
+// Screen colours are in assets/theme.css.
 window.FACE_CONFIG = {
-  // Mood shown at start, and the mood a voice trigger falls back to.
-  defaultMood: 'neutral',
+  // Face art style: 'Commissioned' (the artist's renders). Add more under `styles` to swap live with F,
+  // RB/R1 on a controller, or the tuning panel button.
+  faceStyle: 'Commissioned',
 
-  // Moods. `set` is a folder in assets/mouths/. Mood names are best guesses until the friend confirms them.
+  // Each style has its own moods.
+  //   defaultMood: mood shown at start, and the mood a voice trigger falls back to.
+  //   fit:        'contain' shows the whole frame (bars of `background` where the screen shape differs),
+  //               'cover' fills the screen but crops the edges (cut off the bottom lip in Safari with toolbars).
+  //   background: page colour behind the frames (assets/theme.css).
+  // Moods: `set` is a face set id in assets/manifest.js (folders in assets/faces/<style>/).
   //   key:     keyboard key (Bluetooth keyboard / clicker / 8BitDo in keyboard mode)
   //   button:  gamepad button index (standard layout: 0 = A/Cross, 1 = B/Circle, 2 = X/Square,
   //            3 = Y/Triangle, 4 = LB/L1, 5 = RB/R1). The tuning panel shows the index of the last press.
   //   triggers: words or phrases that switch to this mood when voice triggers are on. Lower case.
-  moods: [
-    { id: 'neutral',   set: 'set5-round', key: '1', button: 0,
-      triggers: ['okay', 'alright', 'anyway', 'calm down', 'moving on'] },
-    { id: 'angry',     set: 'set4-fangs', key: '2', button: 1,
-      triggers: ['angry', 'shut up', 'i hate', 'annoying', 'ugh', 'what the'] },
-    { id: 'sad',       set: 'set3-small', key: '3', button: 2,
-      triggers: ['sad', 'sorry', 'oh no', 'i miss', 'unfortunately', 'aw man'] },
-    { id: 'happy',     set: 'set2-grin',  key: '4', button: 3,
-      triggers: ['haha', 'awesome', 'amazing', 'yay', 'fantastic', 'love it', 'ladies and gentlemen'] },
-    { id: 'flustered', set: 'set1-blush', key: '5', button: 4,
-      triggers: ['aww', 'thank you', 'cute', 'stop it', 'oh my', 'embarrassing'] },
-  ],
+  styles: {
+    Commissioned: {
+      defaultMood: 'neutral', fit: 'contain', background: 'var(--commissioned-bg)',
+      // 'surprised' and 'smug' use the single extra poses, so the mouth holds still while talking.
+      moods: [
+        { id: 'neutral',   set: 'normal',  key: '1', button: 0,
+          triggers: ['okay', 'alright', 'anyway', 'calm down', 'moving on'] },
+        { id: 'happy',     set: 'happy',   key: '2', button: 3,
+          triggers: ['haha', 'awesome', 'amazing', 'yay', 'fantastic', 'love it', 'ladies and gentlemen', 'aww', 'thank you', 'cute'] },
+        { id: 'angry',     set: 'angry',   key: '3', button: 1,
+          triggers: ['angry', 'shut up', 'i hate', 'annoying', 'ugh', 'what the'] },
+        { id: 'surprised', set: 'o-mouth', key: '4', button: 2,
+          triggers: ['whoa', 'wow', 'oh my', 'no way'] },
+        { id: 'smug',      set: 'smirk',   key: '5', button: 4,
+          triggers: ['obviously', 'of course', 'told you', 'heh'] },
+      ],
+    },
+  },
 
   voice: {
     enabled: false,         // trigger words at start. Off: Safari speech recognition needs internet. Toggle: V / Select
@@ -37,17 +49,17 @@ window.FACE_CONFIG = {
     minFrameMs: 70,         // shortest time a mouth frame stays up
   },
 
-  // Briefly show a set's extra frame (e.g. set1's tongue) now and then while quiet.
+  // Briefly show a set's extra frame (e.g. a tongue pose) now and then while quiet.
   idleExtras: true,
 
   tv: {
     transitionMs: 600,      // static burst between face and channels
     sound: false,           // play channel/transition audio
     // Videos are downloaded into memory while the start screen is up, so they play without a connection.
-    // Colour bars (11 MB) always are; channels add ~46 MB (small) or ~134 MB (original). If false, channels stream.
+    // Colour bars (11 MB) always are; channels (assets/manifest.js, none at the moment) too unless false.
     preloadChannels: true,
     // A/B test options (the tuning panel can switch them; URL ?videos=...&static=... also overrides):
-    videos: 'small',        // 'small' = re-compressed channels (~46 MB), 'original' = PowerPoint copies (~134 MB)
+    videos: 'small',        // channels: 'small' = re-compressed copies, 'original' = PowerPoint copies
     static: 'generated',    // 'generated' = drawn live (0 MB), 'video' = transitions/static.mov (15 MB)
   },
 
@@ -55,10 +67,10 @@ window.FACE_CONFIG = {
   controls: {
     prevMood:   { keys: ['ArrowLeft', 'PageUp'],    button: 14 },
     nextMood:   { keys: ['ArrowRight', 'PageDown'], button: 15 },
-    nextChannel:{ keys: ['ArrowUp', 'c'],           button: 12 },
     backToFace: { keys: ['ArrowDown', 'Escape', '0'], button: 13 },
     colorBars:  { keys: ['b'],                      button: 7 },   // RT / R2, toggles
     staticBurst:{ keys: ['s'],                      button: 6 },   // LT / L2
+    faceStyle:  { keys: ['f'],                      button: 5 },   // RB / R1: next face style (only with more than one)
     toggleVoice:{ keys: ['v'],                      button: 8 },   // Select / View / Share
     debug:      { keys: ['d'],                      button: 9 },   // Start / Menu / Options
   },

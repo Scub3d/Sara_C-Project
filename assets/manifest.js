@@ -1,55 +1,23 @@
 // Loaded with a <script> tag so pages also work when opened straight from disk (file://).
 self.FACE_MANIFEST = {
-  "note": "Extracted from TennaFaces.pptx (slides 1-5). Mood names are not confirmed yet, so the sets are named by how they look. In each set, frames are ordered closed -> most open. sourceLoop is the original video's pose order, one pose per 1/6 s.",
+  "note": "Face sets come in two styles under faces/<style>/. Commissioned: the artist's renders (2732x2048, the 12.9in iPad Pro screen; opaque full frames with the screen backdrop baked in, identical in every frame). In each set, frames are ordered closed -> most open. Commissioned extras are single poses, used as one-frame sets.",
   "posesPerSecond": 6,
-  "frameSize": [1440, 1080],
-  "mouths": [
-    {
-      "id": "set1-blush",
-      "slide": 1,
-      "looks": "wavy mouth with // blush marks",
-      "frames": ["0.png", "1.png"],
-      "extras": { "tongue": "extra-tongue.png" },
-      "sourceLoop": ["extra-tongue.png", "0.png", "1.png", "0.png"]
-    },
-    {
-      "id": "set2-grin",
-      "slide": 2,
-      "looks": "big lopsided grin, tongue",
-      "frames": ["0.png", "1.png", "2.png"],
-      "sourceLoop": ["1.png", "0.png", "2.png", "0.png"]
-    },
-    {
-      "id": "set3-small",
-      "slide": 3,
-      "looks": "small sideways mouth",
-      "frames": ["0.png", "1.png", "2.png", "3.png"],
-      "sourceLoop": ["2.png", "0.png", "1.png", "0.png", "3.png", "0.png", "1.png", "0.png"]
-    },
-    {
-      "id": "set4-fangs",
-      "slide": 4,
-      "looks": "wide fanged mouth (clenched / open)",
-      "frames": ["0.png", "1.png"],
-      "sourceLoop": ["1.png", "0.png"]
-    },
-    {
-      "id": "set5-round",
-      "slide": 5,
-      "looks": "round talking mouth (flat, O, open)",
-      "frames": ["0.png", "1.png", "2.png", "3.png", "4.png"],
-      "sourceLoop": ["3.png", "0.png", "2.png", "1.png", "4.png", "1.png", "2.png", "0.png"]
-    }
+  "faces": [
+    { "id": "normal", "style": "Commissioned", "dir": "faces/Commissioned/normal", "looks": "lopsided grin",
+      "frames": ["0.png", "1.png", "2.png", "3.png", "4.png"] },
+    { "id": "happy", "style": "Commissioned", "dir": "faces/Commissioned/happy", "looks": "curled grin with blush",
+      "frames": ["0.png", "1.png", "2.png", "3.png", "4.png"] },
+    { "id": "angry", "style": "Commissioned", "dir": "faces/Commissioned/angry", "looks": "square mouth, fangs",
+      "frames": ["0.png", "1.png", "2.png", "3.png", "4.png"] },
+    { "id": "o-mouth", "style": "Commissioned", "dir": "faces/Commissioned/extras", "looks": "small round O (extra pose)",
+      "frames": ["o-mouth.png"] },
+    { "id": "smirk", "style": "Commissioned", "dir": "faces/Commissioned/extras", "looks": "small sideways smirk (extra pose)",
+      "frames": ["smirk.png"] }
   ],
   "transitions": [
     { "file": "transitions/color-bars-glitch.mov", "slide": 6, "seconds": 17.8, "size": [1280, 720] },
     { "file": "transitions/static.mov", "slide": 8, "seconds": 15.7, "size": [1280, 720] }
   ],
-  "channels": [
-    { "file": "channels/smash64.mov", "small": "channels/smash64.small.mp4", "slide": 9, "seconds": 385.4, "size": [960, 720] },
-    { "file": "channels/rickroll-deltarune.mov", "small": "channels/rickroll-deltarune.small.mp4", "slide": 10, "seconds": 78.2, "size": [960, 720], "warning": "profanity on screen" },
-    { "file": "channels/dvd-logo.mov", "small": "channels/dvd-logo.small.mp4", "slide": 11, "seconds": 63.6, "size": [600, 480] },
-    { "file": "channels/bad-apple.mov", "small": "channels/bad-apple.small.mp4", "slide": 12, "seconds": 219.7, "size": [1920, 1080] }
-  ]
+  "channels": []
 }
 ;

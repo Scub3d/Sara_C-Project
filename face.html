@@ -5,28 +5,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tenna Face">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
 <title>Tenna Face</title>
 <link rel="stylesheet" href="assets/theme.css">
+<script>
+  // Opened from a Home Screen icon: iOS sizes 100% / inset:0 too short there (a gap at the bottom), 100vh works.
+  if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');
+  // The page should never scroll; if iOS scrolls it anyway, taps on fixed elements land off target, so undo it.
+  const unscroll = () => { if (scrollX || scrollY) scrollTo(0, 0); };
+  addEventListener('scroll', unscroll);
+  addEventListener('touchend', () => setTimeout(unscroll, 0));
+  if (window.visualViewport) visualViewport.addEventListener('scroll', unscroll);
+  // Show script errors on the start screen, so a broken page doesn't just ignore taps.
+  addEventListener('error', e => {
+    const el = document.getElementById('startErr');
+    if (el) el.textContent = 'Error: ' + e.message + (e.lineno ? ' (line ' + e.lineno + ')' : '');
+  });
+</script>
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: var(--screen-bg);
                touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   #face { position: fixed; inset: 0; }
   #face img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; visibility: hidden; pointer-events: none; }
   #face img.on { visibility: visible; }
+  #face.cover img { object-fit: cover; }
   #tv { position: fixed; inset: 0; width: 100%; height: 100%; background: #000; object-fit: contain; display: none; z-index: 1; }
   #tv.fill { object-fit: cover; }
   #noise { position: fixed; inset: 0; width: 100%; height: 100%; display: none; z-index: 1; image-rendering: auto; }
   #start { position: fixed; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center;
            gap: 12px; background: #000; color: #eee; font: 20px/1.4 -apple-system, system-ui, sans-serif; text-align: center; padding: 24px; }
+  /* Home Screen app: iOS lays the page out short (a bar at the bottom); 100vh covers the whole screen. It also makes the
+     page a little scrollable, and a scrolled page puts taps off target, so the script snaps it back to the top. */
+  html.standalone, html.standalone body { height: 100vh; overscroll-behavior: none; }
+  html.standalone #face, html.standalone #tv, html.standalone #noise, html.standalone #start { bottom: auto; height: 100vh; }
+  #startErr { color: #ff8a80; font-size: 16px; max-width: 34em; }
   #start button { font: inherit; font-size: 28px; padding: 18px 40px; border-radius: 14px; border: 0; background: #2a8cff; color: #fff; }
   #start small { opacity: .65; font-size: 14px; max-width: 34em; }
-  #debug { position: fixed; left: 8px; top: 8px; z-index: 2; display: none; max-width: min(380px, calc(100vw - 16px));
+  #debug { position: fixed; left: 8px; top: max(8px, env(safe-area-inset-top)); z-index: 2; display: none; max-width: min(460px, calc(100vw - 16px));
+           max-height: calc(100vh - 16px - env(safe-area-inset-top)); overflow-y: auto; -webkit-overflow-scrolling: touch;
            padding: 10px 12px; background: rgba(0,0,0,.75); color: #9f9; font: 12px/1.5 ui-monospace, monospace; border-radius: 8px; }
-  #debug label { display: block; color: #ccc; margin-top: 4px; }
-  #debug input[type=range] { width: 200px; vertical-align: middle; }
-  #debug button { font: inherit; margin: 6px 6px 0 0; }
+  #debug label { display: block; color: #ccc; margin-top: 10px; font-size: 14px; }
+  #debug input[type=range] { -webkit-appearance: none; appearance: none; display: block; width: 100%; min-width: 300px; height: 44px;
+                             margin: 2px 0; background: transparent; touch-action: none; }
+  #debug input[type=range]::-webkit-slider-runnable-track { height: 10px; border-radius: 5px; background: #555; }
+  #debug input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 34px; height: 34px; margin-top: -12px;
+                             border-radius: 50%; background: #2a8cff; border: 3px solid #fff; }
+  #debug input[type=range]::-moz-range-track { height: 10px; border-radius: 5px; background: #555; }
+  #debug input[type=range]::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #2a8cff; border: 3px solid #fff; }
+  #debug button { font: 14px/1.2 -apple-system, system-ui, sans-serif; margin: 8px 8px 0 0; padding: 10px 14px; min-height: 44px; border-radius: 8px; }
   #debug .warn { color: #fc6; }
-  #meter { width: 200px; height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin: 4px 0; position: relative; }
+  #a2hsHelp { display: none; margin-top: 8px; padding: 8px 10px; border-radius: 6px; background: rgba(255,255,255,.1); color: #eee; }
+  #a2hsHelp ol { margin: 4px 0; padding-left: 18px; }
+  #a2hsArrow { display: none; position: fixed; top: 6px; right: 24px; z-index: 4; padding: 6px 12px; border-radius: 10px;
+               background: #2a8cff; color: #fff; font: 600 16px/1.3 -apple-system, system-ui, sans-serif; pointer-events: none; }
+  #meter { width: 100%; height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin: 4px 0; position: relative; }
   #meter i { display: block; height: 100%; width: 0; background: #0f0; }
 </style>
 </head>
@@ -39,27 +72,40 @@
   <div>Tenna face</div>
   <button id="go">Tap to start</button>
   <div id="dl"></div>
+  <div id="startErr"></div>
   <small>Allow the microphone. Stay quiet for the first 2 seconds so it can learn the room noise.<br>
   Wait for the videos to finish downloading before going somewhere with a weak connection.<br><br>
   Double-tap the screen, press D on a keyboard, or press Start on a controller to open the tuning panel.</small>
 </div>
 
+<div id="a2hsArrow">Share button is up here ↗</div>
 <div id="debug">
   <div>level <span id="dLevel">-</span> dB · floor <span id="dFloor">-</span> · frame <span id="dFrame">-</span></div>
   <div id="meter"><i id="meterBar"></i></div>
-  <div>mood <b id="dMood">-</b> <span id="dMoodInfo"></span></div>
+  <div>faces <b id="dStyle">-</b> · mood <b id="dMood">-</b> <span id="dMoodInfo"></span></div>
   <div>voice <span id="dVoice">-</span></div>
   <div>heard <span id="dHeard">-</span></div>
   <div>controller <span id="dPad">none</span></div>
   <div>videos <span id="dVideos">-</span></div>
-  <div>A/B <span id="dAB">-</span></div>
+  <div>A/B <span id="dAB">-</span> · page scroll <span id="dScroll">0</span></div>
   <div id="dWarn" class="warn"></div>
   <label>open (dB above floor): <span id="v_open"></span><br><input id="s_open" type="range" min="3" max="30" step="1"></label>
   <label>close (dB above floor): <span id="v_close"></span><br><input id="s_close" type="range" min="1" max="25" step="1"></label>
   <label>widest frame (dB above floor): <span id="v_wide"></span><br><input id="s_wide" type="range" min="6" max="40" step="1"></label>
   <label>release speed: <span id="v_release"></span><br><input id="s_release" type="range" min="0.05" max="0.6" step="0.01"></label>
   <label>min frame time (ms): <span id="v_minFrameMs"></span><br><input id="s_minFrameMs" type="range" min="0" max="200" step="10"></label>
-  <button id="recal">Re-learn noise floor</button><button id="voiceBtn">Voice on/off</button><button id="reset">Reset sliders</button>
+  <button id="fullscreen">Enter full screen</button><button id="a2hs">Add to Home Screen…</button>
+  <div id="a2hsHelp">
+    Safari doesn't let pages add themselves, so it takes 3 taps:
+    <ol>
+      <li>Tap Safari's <b>Share</b> button (square with an arrow, top right of the toolbar).</li>
+      <li>Scroll down, tap <b>Add to Home Screen</b>, then <b>Add</b>.</li>
+      <li>Close this tab and open <b>Tenna Face</b> from the new icon. It runs with no Safari bars and no ✕.</li>
+    </ol>
+    <button id="a2hsShare">Try the share sheet</button> (if Add to Home Screen isn't listed there, use Safari's own Share button)
+  </div>
+  <br><button id="recal">Re-learn noise floor</button><button id="voiceBtn">Voice on/off</button><button id="reset">Reset sliders</button>
+  <br><button id="styleBtn">Switch faces</button>
   <br><button id="abVideos">Switch video version</button><button id="abStatic">Switch static type</button>
 </div>
 
@@ -70,7 +116,7 @@
 (() => {
   const C = window.FACE_CONFIG, M = window.FACE_MANIFEST;
   const $ = id => document.getElementById(id);
-  const sets = Object.fromEntries(M.mouths.map(s => [s.id, s]));
+  const sets = Object.fromEntries(M.faces.map(s => [s.id, s]));
 
   // ---------- tunables (panel changes persist in localStorage when available) ----------
   const cfg = { ...C.lipSync };
@@ -80,11 +126,11 @@
   // ---------- face images: every frame preloaded as its own <img>, swapping just toggles a class ----------
   const faceEl = $('face');
   const imgs = {};          // setId -> { frames: [img], extras: [img] }
-  for (const mood of C.moods) {
+  for (const mood of Object.values(C.styles).flatMap(st => st.moods)) {
     const s = sets[mood.set];
     if (!s) { console.warn('Unknown set', mood.set); continue; }
     if (imgs[s.id]) continue;
-    const mk = f => { const i = new Image(); i.src = `assets/mouths/${s.id}/${f}`; i.alt = ''; faceEl.append(i); return i; };
+    const mk = f => { const i = new Image(); i.src = `assets/${s.dir}/${f}`; i.alt = ''; faceEl.append(i); return i; };
     imgs[s.id] = { frames: s.frames.map(mk), extras: Object.values(s.extras || {}).map(mk) };
   }
   let shownImg = null;
@@ -96,14 +142,37 @@
   }
 
   // ---------- moods ----------
-  const moodById = Object.fromEntries(C.moods.map(m => [m.id, m]));
-  let baseMood = moodById[C.defaultMood] ? C.defaultMood : C.moods[0].id;  // set by controller / keyboard
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Face style: URL ?faces= wins, then the last pick on this iPad, then face-config.js.
+  let style = new URLSearchParams(location.search).get('faces');
+  try { style = style || localStorage.getItem('tennaFaceStyle'); } catch (e) {}
+  if (!C.styles[style]) style = C.styles[C.faceStyle] ? C.faceStyle : Object.keys(C.styles)[0];
+  let moods, moodById, triggers = [];
+  let baseMood;                                                             // set by controller / keyboard
   let voiceMood = null, voiceUntil = 0;                                     // set by trigger words
   const currentMood = () => (voiceMood && (C.voice.moodSeconds <= 0 || performance.now() < voiceUntil)) ? voiceMood : baseMood;
   function setBaseMood(id) { baseMood = id; voiceMood = null; backToFace(); }
   function stepMood(d) {
-    const i = C.moods.findIndex(m => m.id === currentMood());
-    setBaseMood(C.moods[(i + d + C.moods.length) % C.moods.length].id);
+    const i = moods.findIndex(m => m.id === currentMood());
+    setBaseMood(moods[(i + d + moods.length) % moods.length].id);
+  }
+  function applyStyle(name) {
+    style = name;
+    const st = C.styles[style];
+    moods = st.moods;
+    moodById = Object.fromEntries(moods.map(m => [m.id, m]));
+    triggers = moods.flatMap(m => m.triggers.map(t => ({ mood: m.id, re: new RegExp(`\\b${esc(t.toLowerCase())}\\b`, 'g') })));
+    if (!moodById[baseMood]) baseMood = moodById[st.defaultMood] ? st.defaultMood : moods[0].id;  // same mood id kept if it exists
+    voiceMood = null;
+    faceEl.classList.toggle('cover', st.fit === 'cover');
+    document.body.style.background = st.background;
+    try { localStorage.setItem('tennaFaceStyle', style); } catch (e) {}
+  }
+  function nextStyle() {
+    const names = Object.keys(C.styles);
+    applyStyle(names[(names.indexOf(style) + 1) % names.length]);
+    frameIdx = 0;
+    show(imgs[moodById[currentMood()].set].frames[0]);
   }
 
   // ---------- audio level -> mouth frame ----------
@@ -164,7 +233,7 @@
     if (want !== frameIdx && now - lastFrameChange >= cfg.minFrameMs) { frameIdx = Math.min(want, n - 1); lastFrameChange = now; }
     frameIdx = Math.min(frameIdx, n - 1);   // mood may have changed to a set with fewer frames
 
-    // occasional idle flourish (e.g. set1's tongue) while quiet
+    // occasional idle flourish (a set's `extras`) while quiet
     if (isOpen) quietSince = now;
     if (C.idleExtras && set.extras.length && !isOpen && now - quietSince > 1500 && now > nextExtra) {
       extraImg = set.extras[Math.floor(Math.random() * set.extras.length)];
@@ -238,6 +307,7 @@
     viaStatic(stopTv);
   }
   function nextChannel() {
+    if (!M.channels.length) return;
     channelIdx = (channelIdx + 1) % M.channels.length;
     tvMode = 'channel';
     viaStatic(() => playTv(channelFile(M.channels[channelIdx])));
@@ -256,8 +326,6 @@
 
   // ---------- voice trigger words (Safari speech recognition) ----------
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const triggers = C.moods.flatMap(m => m.triggers.map(t => ({ mood: m.id, re: new RegExp(`\\b${esc(t.toLowerCase())}\\b`, 'g') })));
   let rec = null, voiceOn = false, voiceStatus = SR ? 'off' : 'not supported on this browser', heard = '', fired = {}, restartDelay = 300;
 
   function startVoice() {
@@ -308,12 +376,12 @@
   const dbg = $('debug');
   const toggleDebug = () => { dbg.style.display = dbg.style.display === 'block' ? 'none' : 'block'; };
   const actions = { prevMood: () => stepMood(-1), nextMood: () => stepMood(1), nextChannel, backToFace,
-                    colorBars: toggleBars, staticBurst, toggleVoice, debug: toggleDebug };
+                    colorBars: toggleBars, staticBurst, toggleVoice, faceStyle: nextStyle, debug: toggleDebug };
 
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT') return;
     const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-    const mood = C.moods.find(m => m.key === k);
+    const mood = moods.find(m => m.key === k);
     if (mood) { setBaseMood(mood.id); e.preventDefault(); return; }
     for (const [name, c] of Object.entries(C.controls)) {
       if (c.keys.includes(k)) { actions[name](); e.preventDefault(); return; }
@@ -330,7 +398,7 @@
       const down = b.pressed || b.value > 0.5;
       if (down && !padPrev[i]) {
         lastButton = i;
-        const mood = C.moods.find(m => m.button === i);
+        const mood = moods.find(m => m.button === i);
         if (mood) setBaseMood(mood.id);
         else for (const [name, c] of Object.entries(C.controls)) if (c.button === i) actions[name]();
       }
@@ -354,8 +422,40 @@
     s.addEventListener('input', () => { cfg[key] = +s.value; v.textContent = cfg[key]; save(); });
     $('reset').addEventListener('click', () => { cfg[key] = C.lipSync[key]; sync(); save(); });
   }
+  // Full screen (hides Safari's toolbars). Needs a tap, so it's a panel button rather than a controller action.
+  const fsEl = document.documentElement;
+  const fsActive = () => document.fullscreenElement || document.webkitFullscreenElement;
+  const fsBtn = $('fullscreen');
+  const fsLabel = () => { fsBtn.textContent = fsActive() ? 'Exit full screen' : 'Enter full screen'; };
+  // Opened from a Home Screen icon: already free of Safari's bars, and Safari's full-screen mode would only add its X button.
+  const homeScreenApp = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+  if (homeScreenApp) fsBtn.hidden = $('a2hs').hidden = true;
+  // Add to Home Screen can't be started by a page; this leaves full screen (so Safari's toolbar is back) and shows the steps.
+  $('a2hs').addEventListener('click', async () => {
+    const help = $('a2hsHelp'), arrow = $('a2hsArrow');
+    const showing = help.style.display === 'block';
+    help.style.display = arrow.style.display = showing ? 'none' : 'block';
+    if (!showing && fsActive()) { try { await (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} }
+    if (!showing) setTimeout(() => { arrow.style.display = 'none'; }, 8000);
+  });
+  if (!navigator.share) $('a2hsShare').hidden = true;
+  $('a2hsShare').addEventListener('click', () => {
+    navigator.share({ title: 'Tenna Face', url: location.href }).catch(() => {});
+  });
+  if (!homeScreenApp && !(fsEl.requestFullscreen || fsEl.webkitRequestFullscreen)) { fsBtn.disabled = true; fsBtn.textContent = 'Full screen not supported here (use Safari)'; }
+  fsBtn.addEventListener('click', async () => {
+    try {
+      if (fsActive()) await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      else await (fsEl.requestFullscreen || fsEl.webkitRequestFullscreen).call(fsEl);
+    } catch (e) { fsBtn.textContent = 'Full screen failed (use Safari, or Add to Home Screen): ' + e.message; }
+  });
+  document.addEventListener('fullscreenchange', fsLabel);
+  document.addEventListener('webkitfullscreenchange', fsLabel);
   $('recal').addEventListener('click', recalibrate);
   $('voiceBtn').addEventListener('click', toggleVoice);
+  $('styleBtn').addEventListener('click', nextStyle);
+  if (Object.keys(C.styles).length < 2) $('styleBtn').style.display = 'none';
+  if (!M.channels.length) $('abVideos').style.display = 'none';
   // A/B switches reload the page with the other option (this downloads that version's videos)
   const reloadWith = (k, v) => { params.set(k, v); location.search = params.toString(); };
   $('abVideos').addEventListener('click', () => reloadWith('videos', videoVersion === 'small' ? 'original' : 'small'));
@@ -368,6 +468,7 @@
     $('dFrame').textContent = `${frameIdx}${isOpen ? ' (open)' : ''}`;
     $('meterBar').style.width = Math.max(0, Math.min(100, (level + 70) / 70 * 100)) + '%';
     const vm = voiceMood && (C.voice.moodSeconds <= 0 || now < voiceUntil);
+    $('dStyle').textContent = style;
     $('dMood').textContent = currentMood();
     $('dMoodInfo').textContent = vm ? `(voice, ${C.voice.moodSeconds > 0 ? Math.ceil((voiceUntil - now) / 1000) + ' s left' : 'held'}; base ${baseMood})` : '(base)';
     $('dVoice').textContent = voiceStatus;
@@ -375,6 +476,7 @@
     $('dPad').textContent = padInfo;
     $('dVideos').textContent = dlEl.textContent;
     $('dAB').textContent = `videos ${videoVersion}, static ${staticType}`;
+    $('dScroll').textContent = Math.round(scrollY) + (window.visualViewport ? '/' + Math.round(visualViewport.offsetTop) : '');
     $('dWarn').textContent = track && (track.muted || track.readyState === 'ended')
       ? 'Mic stream is muted/ended. Speech recognition may have taken the mic: turn voice off, then reload.' : '';
   }
@@ -388,12 +490,19 @@
   }
 
   // ---------- start (a user gesture is required for the mic, audio and video in Safari) ----------
+  applyStyle(style);
   show(imgs[moodById[baseMood].set].frames[0]);
   $('go').addEventListener('click', async () => {
+    const go = $('go'), err = $('startErr');
+    if (go.disabled) return;
+    go.disabled = true; go.textContent = 'Starting…'; err.textContent = '';
     try {
-      await startAudio();
+      // the mic prompt can hang on iOS without an answer; give up after 15 s instead of doing nothing
+      await Promise.race([startAudio(), new Promise((_, no) => setTimeout(() => no(new Error('the microphone did not respond')), 15000))]);
     } catch (e) {
-      alert('Microphone failed: ' + e.message + '\nSafari only allows the mic on HTTPS (or localhost).');
+      err.textContent = 'Microphone failed: ' + e.message + '. The mic needs an https:// address. ' +
+        'From a Home Screen icon, check Settings > Safari > Microphone (or Settings > Privacy > Microphone) and try again.';
+      go.disabled = false; go.textContent = 'Tap to start';
       return;
     }
     $('start').style.display = 'none';

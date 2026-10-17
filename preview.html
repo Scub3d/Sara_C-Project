@@ -27,47 +27,37 @@
 </head>
 <body>
 <h1>Tenna face assets</h1>
-<div class="bar">
-  <label>Screen colour <input type="color" id="bg"></label>
-  <span id="hex"></span>
-  <span>To make a colour permanent, set <code>--screen-bg</code> in <code>assets/theme.css</code>.</span>
-</div>
-
-<h2>Mouth sets (slides 1–5). Big tile = original loop; small = frames, closed → open</h2>
-<div class="grid" id="mouths"></div>
+<h2>Commissioned faces (artist renders). Big tile = frames cycling closed → open → closed; small = frames, closed → open</h2>
+<div class="grid" id="Commissioned"></div>
 
 <h2>Transitions (slides 6, 8). Static: original video vs generated live (0 MB)</h2>
 <div class="grid" id="transitions"></div>
 
-<h2>Channels (slides 9–12). Original vs small (re-compressed)</h2>
-<div class="grid" id="channels"></div>
 
 <script src="assets/manifest.js"></script>
 <script src="assets/static-noise.js"></script>
 <script>
   const M = window.FACE_MANIFEST;
-  const root = document.documentElement;
-  const bg = document.getElementById('bg'), hex = document.getElementById('hex');
-  const setBg = v => { root.style.setProperty('--screen-bg', v); hex.textContent = v; };
-  bg.value = getComputedStyle(root).getPropertyValue('--screen-bg').trim();
-  hex.textContent = bg.value;
-  bg.addEventListener('input', () => setBg(bg.value));
 
   const loops = [];
-  for (const set of M.mouths) {
-    const dir = `assets/mouths/${set.id}/`;
+  for (const set of M.faces) {
+    const grid = document.getElementById(set.style);
+    if (!grid) continue;
+    const dir = `assets/${set.dir}/`;
     const card = document.createElement('div');
     card.className = 'card';
     const extras = Object.entries(set.extras || {});
-    card.innerHTML = `<h3>${set.id} · slide ${set.slide}</h3>
-      <img class="screen" src="${dir}${set.sourceLoop[0]}" alt="">
-      <div class="frames">
+    card.innerHTML = `<h3>${set.id}${set.slide ? ' · slide ' + set.slide : ''}</h3>
+      <img class="screen" src="${dir}${set.frames[0]}" alt="">
+      ${set.frames.length + extras.length < 2 ? '' : `<div class="frames">
         ${set.frames.map(f => `<figure><img class="screen" src="${dir}${f}" alt=""><figcaption>${f}</figcaption></figure>`).join('')}
         ${extras.map(([k, f]) => `<figure><img class="screen" src="${dir}${f}" alt=""><figcaption>${k}</figcaption></figure>`).join('')}
-      </div>
+      </div>`}
       <p>${set.looks}</p>`;
-    document.getElementById('mouths').append(card);
-    loops.push({ img: card.querySelector('img'), dir, seq: set.sourceLoop });
+    grid.append(card);
+    // the original video's loop if there is one, else ping-pong through the frames: 0 1 2 3 4 3 2 1
+    const seq = set.sourceLoop || set.frames.concat(set.frames.slice(1, -1).reverse());
+    loops.push({ img: card.querySelector('img'), dir, seq });
   }
   let tick = 0;
   setInterval(() => {
@@ -86,7 +76,7 @@
         ${b ? `<div class="ab"><div>original <span class="mb" data-f="${v.file}"></span>${vid(v.file)}</div>
                <div>${isStatic ? 'generated · 0 MB' : `small <span class="mb" data-f="${v.small}"></span>`}${b}</div></div>` : vid(v.file)}
         <p>${v.seconds.toFixed(0)} s · ${v.size.join('×')}${v.warning ? ' · ⚠ ' + v.warning : ''}</p>`;
-      document.getElementById(kind).append(card);
+      document.getElementById(kind)?.append(card);
       if (isStatic) StaticNoise(card.querySelector('canvas')).start();
     }
   }

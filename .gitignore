@@ -1,2 +1,14 @@
 # Source PowerPoint (170 MB, over GitHub's 100 MB file limit). Its contents are extracted into assets/.
 *.pptx
+
+# Self-signed certificate made by serve.mjs for local iPad testing
+.cert/
+
+# Packaged copies of the project
+*.zip
+
+# Old PowerPoint face art, kept locally but not published
+assets/faces/Existing/
+
+# Joke channel videos, kept locally but not published
+assets/channels/

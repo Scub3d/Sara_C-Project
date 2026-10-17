@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tenna Face Guide</title>
+<style>
+  :root {
+    --bg: #f6f4fb; --card: #ffffff; --text: #23202e; --muted: #625d73; --line: #e2ddef;
+    --accent: #6b55c9; --accent-soft: #ece7fb; --key-bg: #f1eff7; --key-line: #cfc8e3; --warn: #8a5a00; --warn-bg: #fff4dc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17151f; --card: #211e2b; --text: #ece9f5; --muted: #a49fb6; --line: #34303f;
+      --accent: #b5a6ff; --accent-soft: #2d2842; --key-bg: #2b2737; --key-line: #4a4560; --warn: #ffd27a; --warn-bg: #3a2f17;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17151f; --card: #211e2b; --text: #ece9f5; --muted: #a49fb6; --line: #34303f;
+    --accent: #b5a6ff; --accent-soft: #2d2842; --key-bg: #2b2737; --key-line: #4a4560; --warn: #ffd27a; --warn-bg: #3a2f17;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 -apple-system, system-ui, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1 { font-size: 30px; margin: 0 0 4px; }
+  .lede { color: var(--muted); margin: 0 0 20px; }
+  nav { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; margin-bottom: 28px; }
+  nav ol { margin: 0; padding-left: 22px; columns: 2; column-gap: 28px; }
+  nav a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 560px) { nav ol { columns: 1; } }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 4px 20px 16px; margin-bottom: 18px; }
+  h2 { font-size: 22px; margin: 18px 0 8px; }
+  h3 { font-size: 17px; margin: 16px 0 6px; }
+  p, li { max-width: 70ch; }
+  ol.steps > li { margin-bottom: 8px; }
+  kbd { display: inline-block; min-width: 1.6em; text-align: center; padding: 1px 6px; border: 1px solid var(--key-line);
+        border-bottom-width: 2px; border-radius: 6px; background: var(--key-bg); font: 600 14px/1.4 ui-monospace, Menlo, monospace; }
+  .pad { display: inline-block; white-space: nowrap; padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 14px; }
+  .note { background: var(--accent-soft); border-radius: 10px; padding: 10px 14px; margin: 12px 0; }
+  .warn { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 10px 14px; margin: 12px 0; }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; margin: 8px 0 4px; font-size: 15px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+  td.thumb { width: 96px; }
+  td.thumb img { width: 88px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; display: block; }
+  td.thumb img.existing { object-fit: contain; background: #DBE8F5; }
+  .muted { color: var(--muted); }
+  .styles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+  .styles figure { margin: 0; }
+  .styles img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; display: block; border: 1px solid var(--line); }
+  .styles img.existing { object-fit: contain; background: #DBE8F5; }
+  .styles figcaption { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  @media (max-width: 560px) { .styles { grid-template-columns: 1fr; } }
+  code { font: 14px ui-monospace, Menlo, monospace; background: var(--key-bg); padding: 1px 5px; border-radius: 4px; }
+  a { color: var(--accent); }
+  .big-link { display: inline-block; margin: 6px 0; padding: 10px 18px; border-radius: 10px; background: var(--accent); color: var(--bg);
+              font-weight: 700; text-decoration: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tenna face guide</h1>
+  <p class="lede">How the iPad face works, and how to control it during the cosplay.</p>
+  <a class="big-link" href="face.html">Open the face →</a>
+
+  <nav>
+    <ol>
+      <li><a href="#what">What it does</a></li>
+      <li><a href="#start">Starting the face</a></li>
+      <li><a href="#styles">The faces</a></li>
+      <li><a href="#moods">Changing mood</a></li>
+      <li><a href="#tv">TV tricks: bars, static</a></li>
+      <li><a href="#controls">All controls in one table</a></li>
+      <li><a href="#talking">How the mouth follows your voice</a></li>
+      <li><a href="#panel">The tuning panel</a></li>
+      <li><a href="#voice">Voice trigger words (optional)</a></li>
+      <li><a href="#tips">Tips for the event</a></li>
+      <li><a href="#trouble">Troubleshooting</a></li>
+      <li><a href="#tech">For whoever sets it up</a></li>
+    </ol>
+  </nav>
+
+  <section id="what">
+    <h2>1. What it does</h2>
+    <p>The iPad sits in the helmet and shows Tenna's face. A microphone picks up your voice, and <b>the mouth opens and closes as you talk</b>. Louder talking opens it wider.</p>
+    <p>You change Tenna's <b>mood</b> (which set of mouths is shown) with a Bluetooth controller or a small Bluetooth keyboard or clicker. You can also switch the screen to <b>TV mode</b>: glitchy colour bars, or a burst of static.</p>
+    <p>Nothing needs internet once the face has started. The videos download while the start screen is showing, so after that a bad connection at the event doesn't matter.</p>
+  </section>
+
+  <section id="start">
+    <h2>2. Starting the face</h2>
+    <ol class="steps">
+      <li>Plug the USB microphone into the iPad (through the powered hub) and connect the Bluetooth controller or keyboard.</li>
+      <li>Open <b>face.html</b> in <b>Safari</b> (the button at the top of this page). Use the <code>https://</code> address; the microphone only works on https. Other iPad browsers (Firefox, Chrome) can't go full screen, and may not support voice trigger words.</li>
+      <li>Wait until the start screen says the videos have finished downloading.</li>
+      <li>Tap <b>Tap to start</b> and choose <b>Allow</b> when Safari asks for the microphone.</li>
+      <li><b>Stay quiet for 2 seconds.</b> The face uses that time to learn how loud the room is, so background noise doesn't move the mouth.</li>
+      <li>Talk. The mouth should move. If it doesn't, see <a href="#trouble">Troubleshooting</a>.</li>
+      <li><b>Go full screen.</b> Best: in Safari tap Share → <b>Add to Home Screen</b> (the panel's <b>Add to Home Screen…</b> button walks you through it), then always open the face from that icon. It runs with no Safari bars and no ✕ button. The quick way: double-tap to open the tuning panel and tap <b>Enter full screen</b>. Safari then shows a grey ✕ in the top-left corner that a web page can't hide.</li>
+    </ol>
+    <div class="note">If the room gets much louder or quieter later (you move from a hallway into a panel room, say), open the <a href="#panel">tuning panel</a> and press <b>Re-learn noise floor</b>, staying quiet for 2 seconds.</div>
+  </section>
+
+  <section id="styles">
+    <h2>3. The faces</h2>
+    <div class="styles">
+      <figure><img src="assets/faces/Commissioned/happy/4.png" alt="Commissioned happy face, mouth open"><figcaption>The commissioned renders from the artist. Full-screen art with the screen glow built in. Moods: neutral, happy, angry, plus the "surprised" and "smug" poses.</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="moods">
+    <h2>4. Changing mood</h2>
+    <p>Each mood is its own set of mouths. Press the mood's button and the face switches straight away. If the TV was showing something, it also goes back to the face. Left and right on the D-pad (or the arrow keys) step through the moods in order.</p>
+    <p class="muted">The tables below are read from the settings file, so they always match what the face actually does.</p>
+    <div id="moodTables"></div>
+    <div class="note">The <b>surprised</b> and <b>smug</b> poses are a single drawing each, so the mouth holds still in those moods even while you talk. They're for reactions.</div>
+  </section>
+
+  <section id="tv">
+    <h2>5. TV tricks: bars, static</h2>
+    <h3>Colour bars</h3>
+    <p>Press <span class="ctl" data-ctl="colorBars"></span> for glitchy TV colour bars ("technical difficulties"). Press it again to go back to the face.</p>
+    <h3>Back to the face</h3>
+    <p>Press <span class="ctl" data-ctl="backToFace"></span>, or any mood button, to flip back to the face (through static).</p>
+    <h3>Static burst</h3>
+    <p>Press <span class="ctl" data-ctl="staticBurst"></span> while the face is showing for a quick flash of static, like the signal cutting out for a moment.</p>
+  </section>
+
+  <section id="controls">
+    <h2>6. All controls in one table</h2>
+    <p>Controller names: Xbox-style first, PlayStation in brackets. An 8BitDo controller in Xbox/X-input mode uses the same layout.</p>
+    <div class="tablewrap"><table id="controlTable"><thead><tr><th>What it does</th><th>Keyboard</th><th>Controller</th></tr></thead><tbody></tbody></table></div>
+    <p>You can also <b>double-tap the screen</b> to open the tuning panel.</p>
+  </section>
+
+  <section id="talking">
+    <h2>7. How the mouth follows your voice</h2>
+    <p>The face measures how loud the microphone is many times a second and compares it with the quiet room noise it learned at the start:</p>
+    <ul>
+      <li>Quieter than the <b>open</b> level: the mouth stays closed (the first drawing of the mood).</li>
+      <li>Louder than <b>open</b>: the mouth opens.</li>
+      <li>The louder you get, up to the <b>widest frame</b> level, the more open the drawing it picks.</li>
+      <li>It only closes again when the sound drops below the <b>close</b> level. That gap stops the mouth flickering on and off in the middle of a word.</li>
+    </ul>
+    <p>It reacts to how loud the sound is, not the actual words, so it works for any language, singing and laughing too. It can't tell your voice from someone shouting right next to you, so a mic close to your mouth works best.</p>
+  </section>
+
+  <section id="panel">
+    <h2>8. The tuning panel</h2>
+    <p>Open it by <b>double-tapping the screen</b>, pressing <span class="ctl" data-ctl="debug"></span>, and close it the same way. Drag a slider's round blue handle with your finger to change it. Slider changes are saved on the iPad. If the panel is taller than the screen, scroll inside it.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Setting</th><th>What to do with it</th></tr></thead>
+      <tbody>
+        <tr><td><b>level / meter</b></td><td>The green bar shows how loud the mic is right now. Watch it while you talk to check the mic works.</td></tr>
+        <tr><td><b>open</b></td><td>The mouth opens when you're this many dB louder than the room. <b>Raise it</b> if background noise makes the mouth move when you're silent. <b>Lower it</b> if quiet talking doesn't open the mouth.</td></tr>
+        <tr><td><b>close</b></td><td>The mouth closes below this level. Keep it a few dB under "open". If the mouth stays open too long after you stop, raise it.</td></tr>
+        <tr><td><b>widest frame</b></td><td>How loud you need to be for the most open mouth. Lower it if the widest mouth never shows up; raise it if the mouth is always wide open.</td></tr>
+        <tr><td><b>release speed</b></td><td>How quickly the mouth relaxes after a sound. Higher is snappier; lower is smoother.</td></tr>
+        <tr><td><b>min frame time</b></td><td>The shortest time one drawing stays up. Raise it if the mouth looks jittery.</td></tr>
+        <tr><td><b>Add to Home Screen…</b></td><td>Safari doesn't let a page add itself, so this button shows the 3 steps and points at Safari's Share button (leaving full screen first so the toolbar is visible). "Try the share sheet" opens the iPad's share menu, but Add to Home Screen may only be in Safari's own Share button. Hidden when the face is already running from its Home Screen icon.</td></tr>
+        <tr><td><b>Enter / Exit full screen</b></td><td>Hides Safari's address bar and tabs so the face fills the screen (Safari adds a ✕ button you can't hide). This button isn't shown when the face is opened from its Home Screen icon, because it's already full screen there. It has to be a tap (Safari doesn't allow a controller button to do this). Swiping down from the top or tapping Safari's ✕ also exits.</td></tr>
+        <tr><td><b>Re-learn noise floor</b></td><td>Stay quiet for 2 seconds after pressing it. Do this whenever the room changes.</td></tr>
+        <tr><td><b>Voice on/off</b></td><td>Turns <a href="#voice">voice trigger words</a> on or off.</td></tr>
+        <tr><td><b>Reset sliders</b></td><td>Puts every slider back to its starting value.</td></tr>
+        <tr><td><b>page scroll</b></td><td>At the end of the "A/B" line. It should always read <code>0/0</code>. If panel buttons ever stop responding to taps, check this value: anything else means the page has shifted and taps are landing off target.</td></tr>
+        <tr><td><b>controller … last button</b></td><td>Shows the number of the last controller button pressed. Handy if a controller's buttons don't match the table above.</td></tr>
+        <tr><td><b>Switch static type</b></td><td>Test option for the static. You don't need these at an event.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="voice">
+    <h2>9. Voice trigger words (optional)</h2>
+    <p>The face can also change mood by itself when it hears certain words, for example "haha" makes it happy. It's <b id="voiceDefault">off</b> by default because Safari's speech recognition needs an internet connection, which events often don't have.</p>
+    <p>Turn it on or off with <span class="ctl" data-ctl="toggleVoice"></span> or the panel's <b>Voice on/off</b> button. A mood from a trigger word lasts <b id="voiceSecs">10</b> seconds and then goes back to the mood you picked with the controller. The trigger words for each mood are listed in the mood tables above.</p>
+    <div class="warn">If the mouth stops moving after voice is turned on, speech recognition may have taken over the microphone. Turn voice off and reload the page.</div>
+  </section>
+
+  <section id="tips">
+    <h2>10. Tips for the event</h2>
+    <ul>
+      <li><b>Load the face while you have Wi-Fi</b> (hotel, home) and leave Safari open on it. Once started, it doesn't need internet.</li>
+      <li><b>Turn off Auto-Lock</b>: Settings → Display &amp; Brightness → Auto-Lock → Never. The page also asks the iPad to stay awake, but this is the safer setting.</li>
+      <li><b>Guided Access</b> (Settings → Accessibility → Guided Access) keeps the iPad locked to Safari so a bump can't close it. Triple-click the top button to start or end it.</li>
+      <li><b>Add to Home Screen</b> (Share → Add to Home Screen) opens the face full screen without Safari's address bar.</li>
+      <li>Keep the controller charged, and check it's connected before putting the helmet on: press a mood button and watch the face change.</li>
+      <li>Turn the brightness up; the helmet visor dims the screen.</li>
+    </ul>
+  </section>
+
+  <section id="trouble">
+    <h2>11. Troubleshooting</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Problem</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr><td>"Microphone failed" when tapping start</td><td>Make sure the address starts with <code>https://</code>. Check Settings → Safari → Microphone is set to Ask or Allow. Reload and tap Allow.</td></tr>
+        <tr><td>Safari says the connection isn't private (local test server)</td><td>That's expected for the test server. Tap <b>Show Details</b> → <b>visit this website</b> → Visit Website.</td></tr>
+        <tr><td>"Tap to start" does nothing</td><td>Read the red text under the button: it says what went wrong. If there's no text, fully close the face (swipe it away in the app switcher) and open it again so it loads the latest version.</td></tr>
+        <tr><td>A white or empty bar along the bottom (Home Screen icon)</td><td>Fully close the face and reopen it from the icon. If the bar is still there, delete the icon and add it to the Home Screen again: iOS keeps some of the page's settings from when the icon was added.</td></tr>
+        <tr><td>Panel buttons or sliders don't respond to taps</td><td>Fully close the face (swipe it away in the app switcher) and open it again. If it happens again, note the panel's <b>page scroll</b> value and pass it on to whoever set it up.</td></tr>
+        <tr><td>The mouth never moves</td><td>Open the panel and talk: if the green meter doesn't move, the iPad isn't hearing the mic (check the USB mic and hub). If the meter moves but the mouth doesn't, lower <b>open</b>.</td></tr>
+        <tr><td>The mouth moves when nobody is talking</td><td>Press <b>Re-learn noise floor</b> and stay quiet, or raise <b>open</b>.</td></tr>
+        <tr><td>Controller does nothing</td><td>Press any button once: Safari only notices a controller after a press. Check it's paired in Settings → Bluetooth. The panel shows "controller none" until it's seen.</td></tr>
+        <tr><td>A controller button does the wrong thing</td><td>Open the panel, press the button, and read "last button". Tell whoever set it up; the numbers are changed in <code>face-config.js</code>.</td></tr>
+        <tr><td>"Full screen failed" or "not supported"</td><td>Use Safari: other iPad browsers don't allow pages to go full screen. Or use Safari's Share → <b>Add to Home Screen</b> and open the face from that icon, which always runs without any browser bars.</td></tr>
+        <tr><td>Grey ✕ in the top-left, or bars and dots at the screen edges</td><td>The ✕ is Safari's full-screen button. Open the face from its Home Screen icon instead and it goes away. The thin bar at the bottom, the "…" dots at the top and the clock and battery belong to iPadOS itself, and no web page can hide them. Turning the brightness up and keeping them behind the helmet's frame is the best you can do.</td></tr>
+        <tr><td>Thin coloured bars at the edges of the face</td><td>The face is shown whole, so if the visible area isn't the same shape as the art, the gaps are filled with the screen colour. Tap <b>Enter full screen</b> in the panel; on the iPad the face then fills the screen.</td></tr>
+        <tr><td>Colour bars are black or won't play</td><td>The video may not have finished downloading. Reload with a connection and wait for the start screen to say it's done.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section id="tech">
+    <h2>12. For whoever sets it up</h2>
+    <h3>Testing on the iPad from a computer</h3>
+    <ol class="steps">
+      <li>Install <a href="https://nodejs.org">Node.js</a> on the computer. Git for Windows already includes <code>openssl</code>, which the server needs once to make its certificate.</li>
+      <li>In the project folder run <code>node serve.mjs</code>. It prints the addresses to open, for example <code>https://192.168.x.x:8443/face.html</code>.</li>
+      <li>Put the iPad on the same Wi-Fi and open that address. Accept the certificate warning (see Troubleshooting).</li>
+      <li>On Windows, if the iPad can't connect, allow Node.js through the firewall on <b>private</b> networks (Windows asks the first time the server starts).</li>
+    </ol>
+    <p>The server makes its certificate the first time it runs (in a hidden <code>.cert</code> folder, which isn't included in the zip). For the event itself, host the folder somewhere with real HTTPS (e.g. GitHub Pages) so there's no certificate warning. Remember to add the face to the Home Screen again from the new address.</p>
+    <h3>Home Screen app notes</h3>
+    <ul>
+      <li>The face detects when it runs from a Home Screen icon. It then sizes itself to the whole screen (iOS otherwise leaves a bar at the bottom) and hides the full-screen and Add to Home Screen buttons.</li>
+      <li>After changing any files, fully close the Home Screen app and reopen it to load them. If the layout looks wrong, delete the icon and add it again: iOS keeps some settings from when the icon was added.</li>
+    </ul>
+    <h3>Files</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>File</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td><code>face.html</code></td><td>The face page itself.</td></tr>
+        <tr><td><code>face-config.js</code></td><td><b>Settings to edit</b>: starting face style, moods per style, keys, controller buttons, trigger words, slider defaults, TV options.</td></tr>
+        <tr><td><code>assets/faces/Commissioned/</code></td><td>The artist's renders: <code>normal</code>, <code>happy</code>, <code>angry</code> (frames <code>0.png</code> closed → <code>4.png</code> most open) and <code>extras</code> (single poses).</td></tr>
+        <tr><td><code>assets/manifest.js</code></td><td>Lists every face set and its frame order, plus the videos.</td></tr>
+        <tr><td><code>assets/theme.css</code></td><td>Screen colours behind the faces.</td></tr>
+        <tr><td><code>preview.html</code></td><td>Shows every face set animating side by side, and every video.</td></tr>
+        <tr><td><code>assets/icon-180.png</code></td><td>The Home Screen icon.</td></tr>
+        <tr><td><code>serve.mjs</code></td><td>The local test server.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Changing the order of a set's frames</h3>
+    <p>The mouth uses a set's frames in the order listed in <code>assets/manifest.js</code>: the first is the closed mouth and the last is the most open. To change the order, reorder that list, or rename the image files.</p>
+  </section>
+</main>
+
+<script src="assets/manifest.js"></script>
+<script src="face-config.js"></script>
+<script>
+(() => {
+  const C = window.FACE_CONFIG, M = window.FACE_MANIFEST;
+  if (!C || !M) return;   // static text above still reads fine without the config
+  const padNames = { 0: 'A (Cross)', 1: 'B (Circle)', 2: 'X (Square)', 3: 'Y (Triangle)', 4: 'LB (L1)', 5: 'RB (R1)',
+    6: 'LT (L2)', 7: 'RT (R2)', 8: 'Select / View (Share)', 9: 'Start / Menu (Options)', 10: 'Left stick click (L3)',
+    11: 'Right stick click (R3)', 12: 'D-pad up', 13: 'D-pad down', 14: 'D-pad left', 15: 'D-pad right', 16: 'Home (PS)' };
+  const keyName = k => ({ ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Escape: 'Esc', PageUp: 'Page Up', PageDown: 'Page Down' })[k] || k.toUpperCase();
+  const kbd = keys => keys.map(k => `<kbd>${keyName(k)}</kbd>`).join(' ');
+  const pad = b => b == null ? '<span class="muted">–</span>' : `<span class="pad">${padNames[b] || 'button ' + b}</span>`;
+  const sets = Object.fromEntries(M.faces.map(s => [s.id, s]));
+  const thumb = s => {
+    if (!s) return '';
+    const f = s.frames[s.frames.length - 1];
+    return `<img class="${s.style === 'Existing' ? 'existing' : ''}" src="assets/${s.dir}/${f}" alt="${s.looks}" loading="lazy">`;
+  };
+
+  // mood tables, one per style
+  const mt = document.getElementById('moodTables');
+  for (const [name, st] of Object.entries(C.styles)) {
+    mt.insertAdjacentHTML('beforeend', `<h3>${name} faces${name === C.faceStyle ? ' <span class="muted">(starts on this one)</span>' : ''}</h3>
+      <div class="tablewrap"><table><thead><tr><th></th><th>Mood</th><th>Keyboard</th><th>Controller</th><th>Trigger words</th></tr></thead><tbody>
+      ${st.moods.map(m => `<tr><td class="thumb">${thumb(sets[m.set])}</td><td><b>${m.id}</b>${m.id === st.defaultMood ? '<br><span class="muted">start mood</span>' : ''}</td>
+        <td>${kbd([m.key])}</td><td>${pad(m.button)}</td><td class="muted">${m.triggers.join(', ')}</td></tr>`).join('')}
+      </tbody></table></div>`);
+  }
+
+  // inline control mentions
+  for (const el of document.querySelectorAll('.ctl')) {
+    const c = C.controls[el.dataset.ctl];
+    if (c) el.innerHTML = `${kbd(c.keys.slice(0, 2))} or ${pad(c.button)}`;
+  }
+  document.getElementById('voiceDefault').textContent = C.voice.enabled ? 'on' : 'off';
+  document.getElementById('voiceSecs').textContent = C.voice.moodSeconds;
+
+  // full control table
+  const labels = {
+    prevMood: 'Previous mood', nextMood: 'Next mood', 
+    nextChannel: 'TV: next channel', backToFace: 'Back to the face', colorBars: 'TV: colour bars on/off',
+    staticBurst: 'Static burst', toggleVoice: 'Voice trigger words on/off', debug: 'Tuning panel open/close',
+  };
+  const tb = document.querySelector('#controlTable tbody');
+  const style = C.styles[C.faceStyle];
+  tb.insertAdjacentHTML('beforeend', `<tr><td>Pick a mood</td><td>${kbd(style.moods.map(m => m.key))}</td><td>${style.moods.map(m => pad(m.button)).join(' ')}</td></tr>`);
+  for (const [name, c] of Object.entries(C.controls)) {
+    if (name === 'faceStyle' && Object.keys(C.styles).length < 2) continue;
+    tb.insertAdjacentHTML('beforeend', `<tr><td>${labels[name] || name}</td><td>${kbd(c.keys)}</td><td>${pad(c.button)}</td></tr>`);
+  }
+
+})();
+</script>
+</body>
+</html>
