@@ -2,6 +2,11 @@
 
 Running session log maintained by Claude Code. Newest entries first.
 
+## 2026-10-16 - Voice button fix
+
+- **Done:** The user reported that Voice on/off doesn't work on the deployed site. Found a bug: Safari doesn't always fire `onend` after a recognition error, so `rec` stayed set and every later start returned early, doing nothing. Added `dropRec()`, which detaches and aborts the old recogniser on stop, on fatal errors and before each start. The button label now shows the state (on/listening/restarting/error). A refused restart after voice had worked says "tap Voice to turn it back on" instead of pointing at Settings. Tested with a fake recogniser in node (error with no onend, then taps); not tested on the iPad.
+- **Next:** On the iPad, tap Voice and report the button text and the panel's voice/heard lines. If it says `audio-capture`, the lip-sync mic may be blocking recognition. If it says `service-not-allowed`, Siri & Dictation is off, or the Home Screen app isn't allowed speech recognition.
+
 ## 2026-10-16 - Published to GitHub Pages, Commissioned faces only
 
 - **Done:**

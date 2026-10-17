@@ -328,15 +328,27 @@
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   let rec = null, voiceOn = false, voiceStatus = SR ? 'off' : 'not supported on this browser', heard = '', fired = {}, restartDelay = 300;
 
+  // Safari doesn't always fire onend after an error, so a dead recogniser is dropped by hand
+  // (otherwise rec stays set and every later start returns early, doing nothing).
+  function dropRec() {
+    if (!rec) return;
+    const r = rec;
+    rec = null; fired = {};
+    r.onstart = r.onresult = r.onerror = r.onend = null;
+    try { r.abort(); } catch (e) {}
+  }
+  let everListened = false;
   function startVoice() {
     if (!SR) return;
+    if (rec && voiceOn) return;
+    dropRec();
     voiceOn = true;
-    if (rec) return;
+    voiceStatus = 'starting';
     rec = new SR();
     rec.lang = C.voice.lang;
     rec.continuous = true;
     rec.interimResults = true;
-    rec.onstart = () => { voiceStatus = 'listening'; restartDelay = 300; };
+    rec.onstart = () => { voiceStatus = 'listening'; restartDelay = 300; everListened = true; };
     rec.onresult = e => {
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const text = e.results[i][0].transcript.toLowerCase();
@@ -358,7 +370,12 @@
     };
     rec.onerror = e => {
       voiceStatus = 'error: ' + e.error;
-      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { voiceOn = false; voiceStatus += ' (check Settings > Siri & Dictation / Safari permissions)'; }
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        voiceOn = false; dropRec();
+        // a restart without a tap can be refused after it already worked; a first refusal is a settings problem
+        voiceStatus += everListened ? ' (iOS stopped it: tap Voice to turn it back on)'
+                                    : ' (check Settings > Siri & Dictation is on, and Safari / the app may use the mic)';
+      }
     };
     rec.onend = () => {
       rec = null; fired = {};
@@ -367,9 +384,9 @@
       setTimeout(() => { if (voiceOn) startVoice(); }, restartDelay);
       restartDelay = Math.min(restartDelay * 2, 5000);   // back off if it keeps ending straight away
     };
-    try { rec.start(); } catch (e) { voiceStatus = 'error: ' + e.message; rec = null; }
+    try { rec.start(); } catch (e) { voiceStatus = 'error: ' + e.message; voiceOn = false; dropRec(); }
   }
-  function stopVoice() { voiceOn = false; voiceMood = null; if (rec) rec.stop(); voiceStatus = 'off'; }
+  function stopVoice() { voiceOn = false; voiceMood = null; dropRec(); voiceStatus = 'off'; }
   const toggleVoice = () => (voiceOn ? stopVoice() : startVoice());
 
   // ---------- input: keyboard and gamepad ----------
@@ -472,6 +489,8 @@
     $('dMood').textContent = currentMood();
     $('dMoodInfo').textContent = vm ? `(voice, ${C.voice.moodSeconds > 0 ? Math.ceil((voiceUntil - now) / 1000) + ' s left' : 'held'}; base ${baseMood})` : '(base)';
     $('dVoice').textContent = voiceStatus;
+    $('voiceBtn').textContent = !SR ? 'Voice: not supported here' : voiceOn ? `Voice: on (${voiceStatus}) - tap to turn off`
+      : voiceStatus.startsWith('error') ? 'Voice: off (error, see voice line) - tap to retry' : 'Voice: off - tap to turn on';
     $('dHeard').textContent = heard || '-';
     $('dPad').textContent = padInfo;
     $('dVideos').textContent = dlEl.textContent;
