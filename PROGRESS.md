@@ -2,6 +2,16 @@
 
 Running session log maintained by Claude Code. Newest entries first.
 
+## 2026-10-16 - Voice diagnostics: event log, restart-loop cap, lip-sync-off test
+
+- **Done:** On the friend's iPad, after the dropRec fix went live, the button was stuck on "restarting". Recognition is ending straight away each time, and the error was overwritten by "restarting". Now:
+  - The last error is kept (`restarting (last error: …)`).
+  - The panel has a "voice log" line with the last 8 events and their times.
+  - After 4 ends in a row within 2 s with nothing heard, voice stops with `error: keeps stopping straight away (<error>)`.
+  - Added a panel button, "Test: voice without lip-sync". It stops the getUserMedia track, then starts voice, to test whether the lip-sync mic blocks recognition.
+  - Simulated in node. Not tested on the iPad.
+- **Next:** Get the voice log text from the iPad, with and without the lip-sync test. If voice only works with lip-sync off, the two need one mic between them (e.g. pause lip-sync while listening, or find another approach).
+
 ## 2026-10-16 - Voice button fix
 
 - **Done:** The user reported that Voice on/off doesn't work on the deployed site. Found a bug: Safari doesn't always fire `onend` after a recognition error, so `rec` stayed set and every later start returned early, doing nothing. Added `dropRec()`, which detaches and aborts the old recogniser on stop, on fatal errors and before each start. The button label now shows the state (on/listening/restarting/error). A refused restart after voice had worked says "tap Voice to turn it back on" instead of pointing at Settings. Tested with a fake recogniser in node (error with no onend, then taps); not tested on the iPad.

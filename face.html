@@ -85,6 +85,7 @@
   <div>faces <b id="dStyle">-</b> · mood <b id="dMood">-</b> <span id="dMoodInfo"></span></div>
   <div>voice <span id="dVoice">-</span></div>
   <div>heard <span id="dHeard">-</span></div>
+  <div>voice log <span id="dVoiceLog">-</span></div>
   <div>controller <span id="dPad">none</span></div>
   <div>videos <span id="dVideos">-</span></div>
   <div>A/B <span id="dAB">-</span> · page scroll <span id="dScroll">0</span></div>
@@ -105,6 +106,7 @@
     <button id="a2hsShare">Try the share sheet</button> (if Add to Home Screen isn't listed there, use Safari's own Share button)
   </div>
   <br><button id="recal">Re-learn noise floor</button><button id="voiceBtn">Voice on/off</button><button id="reset">Reset sliders</button>
+  <br><button id="voiceSolo">Test: voice without lip-sync</button> (releases the lip-sync mic until reload, to see if it blocks voice)
   <br><button id="styleBtn">Switch faces</button>
   <br><button id="abVideos">Switch video version</button><button id="abStatic">Switch static type</button>
 </div>
@@ -337,19 +339,26 @@
     r.onstart = r.onresult = r.onerror = r.onend = null;
     try { r.abort(); } catch (e) {}
   }
-  let everListened = false;
+  let everListened = false, lastError = '', quickEnds = 0, startedAt = 0, gotResult = false;
+  // short event log for the panel: seconds since the tap, event name
+  let voiceT0 = 0, voiceLog = [];
+  const vlog = ev => { voiceLog.push(((performance.now() - voiceT0) / 1000).toFixed(1) + 's ' + ev); voiceLog = voiceLog.slice(-8); };
   function startVoice() {
     if (!SR) return;
     if (rec && voiceOn) return;
     dropRec();
     voiceOn = true;
     voiceStatus = 'starting';
+    startedAt = performance.now(); gotResult = false;
+    vlog('start');
     rec = new SR();
     rec.lang = C.voice.lang;
     rec.continuous = true;
     rec.interimResults = true;
-    rec.onstart = () => { voiceStatus = 'listening'; restartDelay = 300; everListened = true; };
+    rec.onstart = () => { voiceStatus = 'listening'; everListened = true; vlog('listening'); };
     rec.onresult = e => {
+      if (!gotResult) vlog('heard something');
+      gotResult = true; quickEnds = 0; restartDelay = 300;
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const text = e.results[i][0].transcript.toLowerCase();
         heard = text.slice(-60);
@@ -369,6 +378,8 @@
       }
     };
     rec.onerror = e => {
+      lastError = e.error + (e.message ? ' ' + e.message : '');
+      vlog('error ' + lastError);
       voiceStatus = 'error: ' + e.error;
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
         voiceOn = false; dropRec();
@@ -379,15 +390,27 @@
     };
     rec.onend = () => {
       rec = null; fired = {};
+      vlog('ended');
       if (!voiceOn) { voiceStatus = 'off'; return; }
-      voiceStatus = 'restarting';
+      // ending within 2 s with nothing heard, again and again, means it can't run: stop and say why
+      quickEnds = (!gotResult && performance.now() - startedAt < 2000) ? quickEnds + 1 : 0;
+      if (quickEnds >= 4) {
+        voiceOn = false;
+        voiceStatus = `error: keeps stopping straight away${lastError ? ' (' + lastError + ')' : ' (no error given)'}`;
+        return;
+      }
+      voiceStatus = 'restarting' + (lastError ? ` (last error: ${lastError})` : '');
       setTimeout(() => { if (voiceOn) startVoice(); }, restartDelay);
       restartDelay = Math.min(restartDelay * 2, 5000);   // back off if it keeps ending straight away
     };
     try { rec.start(); } catch (e) { voiceStatus = 'error: ' + e.message; voiceOn = false; dropRec(); }
   }
   function stopVoice() { voiceOn = false; voiceMood = null; dropRec(); voiceStatus = 'off'; }
-  const toggleVoice = () => (voiceOn ? stopVoice() : startVoice());
+  const toggleVoice = () => {
+    if (voiceOn) return stopVoice();
+    voiceT0 = performance.now(); voiceLog = []; lastError = ''; quickEnds = 0; restartDelay = 300;
+    startVoice();
+  };
 
   // ---------- input: keyboard and gamepad ----------
   const dbg = $('debug');
@@ -470,6 +493,12 @@
   document.addEventListener('webkitfullscreenchange', fsLabel);
   $('recal').addEventListener('click', recalibrate);
   $('voiceBtn').addEventListener('click', toggleVoice);
+  $('voiceSolo').addEventListener('click', () => {
+    if (track) track.stop();
+    if (voiceOn) stopVoice();
+    toggleVoice();
+    vlog('lip-sync mic released');
+  });
   $('styleBtn').addEventListener('click', nextStyle);
   if (Object.keys(C.styles).length < 2) $('styleBtn').style.display = 'none';
   if (!M.channels.length) $('abVideos').style.display = 'none';
@@ -492,6 +521,7 @@
     $('voiceBtn').textContent = !SR ? 'Voice: not supported here' : voiceOn ? `Voice: on (${voiceStatus}) - tap to turn off`
       : voiceStatus.startsWith('error') ? 'Voice: off (error, see voice line) - tap to retry' : 'Voice: off - tap to turn on';
     $('dHeard').textContent = heard || '-';
+    $('dVoiceLog').textContent = voiceLog.join(' · ') || '-';
     $('dPad').textContent = padInfo;
     $('dVideos').textContent = dlEl.textContent;
     $('dAB').textContent = `videos ${videoVersion}, static ${staticType}`;
