@@ -12,7 +12,7 @@ Running session log maintained by Claude Code. Newest entries first.
   - The voice log now shows which word fired what.
   - README: sad added; the smug pose is described as the flat sideways line; the bars voice words are listed.
   - Tested the matching in node, and face.html and README.html load headless with no errors. Not tested on the iPad.
-- **Next:** Push, then have the friend retest on the iPad: "happy", "neutral"/"okay" after "omg", "error", and the sad mood. Confirm the sad frame order looks right while talking.
+- **Next:** Pushed as 5afe8b1. Have the friend retest on the iPad: "happy", "neutral"/"okay" after "omg", "error", and the sad mood. Confirm the sad frame order looks right while talking.
 
 ## 2026-10-16 - Voice diagnostics: event log, restart-loop cap, lip-sync-off test
 
