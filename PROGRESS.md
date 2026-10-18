@@ -2,6 +2,18 @@
 
 Running session log maintained by Claude Code. Newest entries first.
 
+## 2026-10-18 - Sad mood, friend's iPad feedback
+
+- **Done:**
+  - New **sad** mood from the artist's frames, renamed to `sad/0-4.png`, ordered closed → open (originals Illustration57_5, 1, 3, 2, 4). Key 6, left-stick click (L3). Triggers: sad, oh no, sorry, so sad, unfortunately, boo.
+  - Each mood's name is now a trigger word (happy, neutral, surprised, smug, sad), plus "normal", "ok" (Safari writes "okay" as "ok"), "omg", "oh my god", "thanks". "Thank you" stays on happy.
+  - Fixed: a trigger word said a second time sometimes didn't fire. Safari reuses a result slot for a new phrase, and the old count stayed. Counts now drop as well as rise. This (and "ok" not matching "okay") is the likely cause of "hard to switch back to neutral".
+  - Voice "error", "technical difficulties" or "please stand by" bring up the colour bars (`voice.colorBars` in face-config.js). Any mood word goes back to the face.
+  - The voice log now shows which word fired what.
+  - README: sad added; the smug pose is described as the flat sideways line; the bars voice words are listed.
+  - Tested the matching in node, and face.html and README.html load headless with no errors. Not tested on the iPad.
+- **Next:** Push, then have the friend retest on the iPad: "happy", "neutral"/"okay" after "omg", "error", and the sad mood. Confirm the sad frame order looks right while talking.
+
 ## 2026-10-16 - Voice diagnostics: event log, restart-loop cap, lip-sync-off test
 
 - **Done:** On the friend's iPad, after the dropRec fix went live, the button was stuck on "restarting". Recognition is ending straight away each time, and the error was overwritten by "restarting". Now:

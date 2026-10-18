@@ -9,6 +9,8 @@ self.FACE_MANIFEST = {
       "frames": ["0.png", "1.png", "2.png", "3.png", "4.png"] },
     { "id": "angry", "style": "Commissioned", "dir": "faces/Commissioned/angry", "looks": "square mouth, fangs",
       "frames": ["0.png", "1.png", "2.png", "3.png", "4.png"] },
+    { "id": "sad", "style": "Commissioned", "dir": "faces/Commissioned/sad", "looks": "wobbly frown, one tear-curl",
+      "frames": ["0.png", "1.png", "2.png", "3.png", "4.png"] },
     { "id": "o-mouth", "style": "Commissioned", "dir": "faces/Commissioned/extras", "looks": "small round O (extra pose)",
       "frames": ["o-mouth.png"] },
     { "id": "smirk", "style": "Commissioned", "dir": "faces/Commissioned/extras", "looks": "small sideways smirk (extra pose)",

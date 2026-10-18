@@ -163,7 +163,9 @@
     const st = C.styles[style];
     moods = st.moods;
     moodById = Object.fromEntries(moods.map(m => [m.id, m]));
-    triggers = moods.flatMap(m => m.triggers.map(t => ({ mood: m.id, re: new RegExp(`\\b${esc(t.toLowerCase())}\\b`, 'g') })));
+    const trig = (t, what) => ({ ...what, word: t, re: new RegExp(`\\b${esc(t.toLowerCase())}\\b`, 'g') });
+    triggers = [...moods.flatMap(m => m.triggers.map(t => trig(t, { mood: m.id }))),
+                ...(C.voice.colorBars || []).map(t => trig(t, { bars: true }))];
     if (!moodById[baseMood]) baseMood = moodById[st.defaultMood] ? st.defaultMood : moods[0].id;  // same mood id kept if it exists
     voiceMood = null;
     faceEl.classList.toggle('cover', st.fit === 'cover');
@@ -369,12 +371,18 @@
           const hits = [...text.matchAll(t.re)];
           const key = t.re.source;
           if (hits.length > (seen[key] || 0)) {
-            seen[key] = hits.length;
             const pos = hits[hits.length - 1].index;
-            if (!best || pos > best.pos) best = { mood: t.mood, pos };
+            if (!best || pos > best.pos) best = { ...t, pos };
           }
+          // also lower the count: Safari can reuse a result slot for a new phrase, and a stale count
+          // stopped a word said again (e.g. "okay" back to neutral) from firing
+          seen[key] = hits.length;
         }
-        if (best) { voiceMood = best.mood; voiceUntil = performance.now() + C.voice.moodSeconds * 1000; }
+        if (best) {
+          vlog(`"${best.word}" -> ${best.bars ? 'colour bars' : best.mood}`);
+          if (best.bars) { if (tvMode !== 'bars') toggleBars(); }
+          else { voiceMood = best.mood; voiceUntil = performance.now() + C.voice.moodSeconds * 1000; backToFace(); }
+        }
       }
     };
     rec.onerror = e => {

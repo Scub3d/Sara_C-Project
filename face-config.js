@@ -19,17 +19,20 @@ window.FACE_CONFIG = {
     Commissioned: {
       defaultMood: 'neutral', fit: 'contain', background: 'var(--commissioned-bg)',
       // 'surprised' and 'smug' use the single extra poses, so the mouth holds still while talking.
+      // Speech recognition writes "okay" as "ok" and "oh my god" as "omg", so both spellings are listed.
       moods: [
         { id: 'neutral',   set: 'normal',  key: '1', button: 0,
-          triggers: ['okay', 'alright', 'anyway', 'calm down', 'moving on'] },
+          triggers: ['neutral', 'normal', 'okay', 'ok', 'alright', 'all right', 'anyway', 'calm down', 'moving on', 'never mind'] },
         { id: 'happy',     set: 'happy',   key: '2', button: 3,
-          triggers: ['haha', 'awesome', 'amazing', 'yay', 'fantastic', 'love it', 'ladies and gentlemen', 'aww', 'thank you', 'cute'] },
+          triggers: ['happy', 'haha', 'awesome', 'amazing', 'yay', 'fantastic', 'love it', 'ladies and gentlemen', 'aww', 'thank you', 'thanks', 'cute'] },
         { id: 'angry',     set: 'angry',   key: '3', button: 1,
           triggers: ['angry', 'shut up', 'i hate', 'annoying', 'ugh', 'what the'] },
+        { id: 'sad',       set: 'sad',     key: '6', button: 10,
+          triggers: ['sad', 'oh no', 'sorry', 'so sad', 'unfortunately', 'boo'] },
         { id: 'surprised', set: 'o-mouth', key: '4', button: 2,
-          triggers: ['whoa', 'wow', 'oh my', 'no way'] },
+          triggers: ['surprised', 'whoa', 'wow', 'oh my', 'omg', 'oh my god', 'no way'] },
         { id: 'smug',      set: 'smirk',   key: '5', button: 4,
-          triggers: ['obviously', 'of course', 'told you', 'heh'] },
+          triggers: ['smug', 'obviously', 'of course', 'told you', 'heh'] },
       ],
     },
   },
@@ -38,6 +41,8 @@ window.FACE_CONFIG = {
     enabled: false,         // trigger words at start. Off: Safari speech recognition needs internet. Toggle: V / Select
     lang: 'en-US',
     moodSeconds: 10,        // how long a trigger word's mood lasts before going back; 0 = until changed
+    // Words that switch the screen instead of the mood. Any mood's trigger word goes back to the face.
+    colorBars: ['error', 'technical difficulties', 'please stand by'],
   },
 
   // Starting values for the tuning panel (changes made in the panel are saved on the iPad).

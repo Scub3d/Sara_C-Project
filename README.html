@@ -105,7 +105,7 @@
   <section id="styles">
     <h2>3. The faces</h2>
     <div class="styles">
-      <figure><img src="assets/faces/Commissioned/happy/4.png" alt="Commissioned happy face, mouth open"><figcaption>The commissioned renders from the artist. Full-screen art with the screen glow built in. Moods: neutral, happy, angry, plus the "surprised" and "smug" poses.</figcaption></figure>
+      <figure><img src="assets/faces/Commissioned/happy/4.png" alt="Commissioned happy face, mouth open"><figcaption>The commissioned renders from the artist. Full-screen art with the screen glow built in. Moods: neutral, happy, angry, sad, plus the "surprised" and "smug" poses.</figcaption></figure>
     </div>
   </section>
 
@@ -114,13 +114,13 @@
     <p>Each mood is its own set of mouths. Press the mood's button and the face switches straight away. If the TV was showing something, it also goes back to the face. Left and right on the D-pad (or the arrow keys) step through the moods in order.</p>
     <p class="muted">The tables below are read from the settings file, so they always match what the face actually does.</p>
     <div id="moodTables"></div>
-    <div class="note">The <b>surprised</b> and <b>smug</b> poses are a single drawing each, so the mouth holds still in those moods even while you talk. They're for reactions.</div>
+    <div class="note">The <b>surprised</b> and <b>smug</b> poses are a single drawing each, so the mouth holds still in those moods even while you talk. They're for reactions. Smug is the flat, sideways line.</div>
   </section>
 
   <section id="tv">
     <h2>5. TV tricks: bars, static</h2>
     <h3>Colour bars</h3>
-    <p>Press <span class="ctl" data-ctl="colorBars"></span> for glitchy TV colour bars ("technical difficulties"). Press it again to go back to the face.</p>
+    <p>Press <span class="ctl" data-ctl="colorBars"></span> for glitchy TV colour bars ("technical difficulties"). Press it again to go back to the face. With voice on, saying <span id="barsWords"></span> also brings up the bars, and any mood's trigger word goes back to the face.</p>
     <h3>Back to the face</h3>
     <p>Press <span class="ctl" data-ctl="backToFace"></span>, or any mood button, to flip back to the face (through static).</p>
     <h3>Static burst</h3>
@@ -281,6 +281,7 @@
   }
   document.getElementById('voiceDefault').textContent = C.voice.enabled ? 'on' : 'off';
   document.getElementById('voiceSecs').textContent = C.voice.moodSeconds;
+  document.getElementById('barsWords').textContent = (C.voice.colorBars || []).map(w => '"' + w + '"').join(', ') || '(none set)';
 
   // full control table
   const labels = {
