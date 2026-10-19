@@ -2,6 +2,11 @@
 
 Running session log maintained by Claude Code. Newest entries first.
 
+## 2026-10-18 - Repo renamed; friend's name removed, history rewritten
+
+- **Done:** The GitHub repo is now `Scub3d/ChaosCosplay-s-Project`, and the local `origin` points there. Removed the friend's name from README.md (title), display-options.md (title, example hotspot SSID now `TennaFace`, `<hostname>.local`), mouth-test.html (title) and this log. Rewrote every commit the same way with `git filter-branch` and force-pushed, so the name isn't in any commit on GitHub. Commit hashes mentioned in older entries below are the pre-rewrite ones.
+- **Note:** The local folder still has the old name (not published). A GitHub Desktop stash (ignored .cert/zip files) still holds the old text locally; it was never pushed.
+
 ## 2026-10-18 - Easier smug trigger words
 
 - **Done:** The friend confirmed on the iPad that happy, neutral, error and sad all work. Only the smug pose (flat line, "extra closed face") was hard to trigger by voice. Added smog (a common mishearing of "smug"), smirk, whatever, duh, yeah right, nice try, naturally.
@@ -123,7 +128,7 @@ Running session log maintained by Claude Code. Newest entries first.
   - Originals are kept alongside for A/B testing. `face-config.js` has `tv.videos` ('small' | 'original') and `tv.static` ('generated' | 'video'). URL `?videos=...&static=...` overrides them, and the tuning panel has two buttons that reload with the other option and show the current mode. `manifest.js` channels gained a `small` field.
   - `preview.html` shows original vs small for each channel, and the static video next to the generated static.
   - Headless test, both modes: defaults download 55 MB, originals 152 MB. With the network cut, the static transition, channel playback, return to the face and the static burst all worked, with no errors.
-  - Git: the repo (remote `Scub3d/ChaosCosplay-s-Project`, nothing pushed yet) had one commit containing the 170 MB pptx. Took it out of that commit (amended "Initial commit", now 62b2dfe), added `.gitignore` with `*.pptx`, and expired the reflog and gc'd so the blob is gone. The pptx stays on disk. Pack size is now 159 MB.
+  - Git: the repo (remote `Scub3d/ChaosCosplay-s-Project`, renamed 2026-10-18, nothing pushed yet) had one commit containing the 170 MB pptx. Took it out of that commit (amended "Initial commit", now 62b2dfe), added `.gitignore` with `*.pptx`, and expired the reflog and gc'd so the blob is gone. The pptx stays on disk. Pack size is now 159 MB.
 - **Decided:** Defaults are the small videos and the generated static. The originals are only an A/B option.
 - **Note:** The user replaced `README.md` with a 2-line title, so the usage notes written earlier are no longer in the repo.
 - **Next:** User commits the current changes and pushes. A/B on the iPad. If the small versions win, the original channel .mov files could be dropped from the repo (`smash64.mov` at 77 MB triggers GitHub's 50 MB warning).
