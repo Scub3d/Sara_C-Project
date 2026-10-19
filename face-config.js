@@ -32,7 +32,7 @@ window.FACE_CONFIG = {
         { id: 'surprised', set: 'o-mouth', key: '4', button: 2,
           triggers: ['surprised', 'whoa', 'wow', 'oh my', 'omg', 'oh my god', 'no way'] },
         { id: 'smug',      set: 'smirk',   key: '5', button: 4,
-          triggers: ['smug', 'obviously', 'of course', 'told you', 'heh'] },
+          triggers: ['smug', 'smog', 'smirk', 'whatever', 'duh', 'yeah right', 'nice try', 'naturally', 'obviously', 'of course', 'told you', 'heh'] },
       ],
     },
   },

@@ -2,6 +2,11 @@
 
 Running session log maintained by Claude Code. Newest entries first.
 
+## 2026-10-18 - Easier smug trigger words
+
+- **Done:** The friend confirmed on the iPad that happy, neutral, error and sad all work. Only the smug pose (flat line, "extra closed face") was hard to trigger by voice. Added smog (a common mishearing of "smug"), smirk, whatever, duh, yeah right, nice try, naturally.
+- **Next:** If smug still won't fire, get the panel's voice log/heard line to see what Safari writes.
+
 ## 2026-10-18 - Sad mood, friend's iPad feedback
 
 - **Done:**
